@@ -1,3 +1,12 @@
+/*
+ * Scanner (lexer) for D code for use by Tree-Sitter.
+ *
+ * Copyright 2022 Garrett D'Amore
+ *
+ * Distributed under the Boost Software License, Version 1.0.
+ * (See accompanying file LICENSE or https://www.boost.org/LICENSE_1_0.txt)
+ * SPDX-License-Identifier: BSL-1.0
+ */
 #include "tree_sitter/parser.h"
 #include <assert.h>
 #include <ctype.h>
@@ -11,13 +20,17 @@
 // specific matches in front of more specific matches.
 enum TokenType {
 	END_FILE,
-	LINE_COMMENT,
-	BLOCK_COMMENT,
-	NESTING_COMMENT,
+	COMMENT,
 	IDENTIFIER,
-	BOM,          // \uFEFF
-	DIRECTIVE,    // # <to end of line>
-	SHEBANG,      // #!
+	BOM,       // \uFEFF
+	DIRECTIVE, // # <to end of line>
+	SHEBANG,   // #!
+	L_INT,
+	L_FLOAT,
+	L_CHAR,       // 'c', or '\x12', or similar
+	L_DQSTRING,   // "string" may include escapes
+	L_BQSTRING,   // `string` (no escapes permitted)
+	L_RQSTRING,   // r"string" (no escapes permitted)
 	S_LBRACE,     // {
 	S_RBRACE,     // }
 	S_DIV,        // /
@@ -70,12 +83,9 @@ enum TokenType {
 	S_APPEND,     // ~=
 	S_AT,         // @
 	S_BOM,        // \uFEFF
-	L_CHAR,       // 'c', or '\x12', or similar
-	L_DQSTRING,   // "string" may include escapes
-	L_BQSTRING,   // `string` (no escapes permitted)
-	L_RQSTRING,   // r"string" (no escapes permitted)
-	L_INT,
-	L_FLOAT,
+	S_DOT,        // .
+	S_RANGE,      // ..
+	S_ELLIPSES,   // ...
 	K_ABSTRACT,
 	K_ALIAS,
 	K_ALIGN,
@@ -474,7 +484,7 @@ match_escape(TSLexer *lexer)
 		return (true);
 
 	case 'U':
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 8; i++) {
 			lexer->advance(lexer, false);
 			if (!isascii(lexer->lookahead) ||
 			    !isxdigit(lexer->lookahead)) {
@@ -539,6 +549,7 @@ match_char_literal(TSLexer *lexer)
 		if (lexer->lookahead != '\'') {
 			return (false); // closing single quote missing
 		}
+		lexer->advance(lexer, false); // to get the closer
 		lexer->mark_end(lexer);
 		lexer->result_symbol = L_CHAR;
 		return (true);
@@ -547,6 +558,7 @@ match_char_literal(TSLexer *lexer)
 	if ((!match_escape(lexer)) || (lexer->lookahead != '\'')) {
 		return (false);
 	}
+	lexer->advance(lexer, false);
 	lexer->mark_end(lexer);
 	lexer->result_symbol = L_CHAR;
 	return (true); // missing closing quote
@@ -561,8 +573,8 @@ match_char_literal(TSLexer *lexer)
 static void
 match_string_suffix(TSLexer *lexer)
 {
-	int ch = lexer->lookahead;
-	if ((ch == 'c') || (ch == 'd') || (ch == 'w')) {
+	int c = lexer->lookahead;
+	if ((c == 'c') || (c == 'd') || (c == 'w')) {
 		// special string form
 		// advance so we include the suffix
 		lexer->advance(lexer, false);
@@ -577,9 +589,16 @@ match_dq_string(TSLexer *lexer)
 	int c = lexer->lookahead;
 	assert(c == '"');
 
-	while (!lexer->eof(lexer)) {
-		lexer->advance(lexer, false);
-		c = lexer->lookahead;
+	lexer->advance(lexer, false);
+
+	while ((c = lexer->lookahead) != 0) {
+
+		if (c == '\\') {
+			if (!match_escape(lexer)) {
+				return (false);
+			}
+			continue;
+		}
 
 		if (c == '"') {
 			// end of string!
@@ -588,6 +607,7 @@ match_dq_string(TSLexer *lexer)
 			match_string_suffix(lexer);
 			return (true);
 		}
+		lexer->advance(lexer, false);
 	}
 	// unterminated
 	return (false);
@@ -598,7 +618,8 @@ match_raw_string(TSLexer *lexer, int quote, int token)
 {
 	int c = lexer->lookahead;
 	assert(c == quote);
-	while (!lexer->eof(lexer)) {
+	lexer->advance(lexer, false); // skip over starting quote
+	while ((c = lexer->lookahead) != 0) {
 		if (c == quote) {
 			lexer->advance(lexer, false);
 			lexer->result_symbol = token;
@@ -627,16 +648,20 @@ match_symbol(TSLexer *lexer, const bool *valid)
 		return (false);
 	}
 	for (int i = 0; i < sizeof(token) - 1; i++) {
-		token[i]      = c;
-		token[i + 1]  = 0;
-		bool possible = false;
-		bool match    = false;
+		token[i]             = c;
+		token[i + 1]         = 0;
+		bool        possible = false;
+		bool        match    = false;
+		const char *sym;
 
-		for (int j = start; symbols[j][0] == token[0]; j++) {
+		for (int j = start; (sym = symbols[j]) != NULL; j++) {
+			if (sym[0] != token[0]) {
+				break;
+			}
 			if (!valid[j]) {
 				continue;
 			}
-			if (strcmp(token, symbols[j]) == 0) {
+			if (strcmp(token, sym) == 0) {
 				lexer->result_symbol = j;
 				match                = true;
 				break;
@@ -644,7 +669,7 @@ match_symbol(TSLexer *lexer, const bool *valid)
 
 			// if the token is a prefix for this symbol, then maybe
 			// its a candidate
-			if (strncmp(token, symbols[j], strlen(token)) == 0) {
+			if (strncmp(token, sym, strlen(token)) == 0) {
 				possible = true;
 				break;
 			}
@@ -744,7 +769,7 @@ match_identifier(TSLexer *lexer, const bool *valid)
 			lexer->result_symbol = IDENTIFIER;
 			return (true);
 		}
-	} while (!lexer->eof(lexer));
+	} while (c != 0);
 
 	assert(token[0] != 0);
 
@@ -752,7 +777,11 @@ match_identifier(TSLexer *lexer, const bool *valid)
 	int start = starting[token[0]];
 	int found = 0;
 	if (start != 0) {
-		for (int j = start; keywords[j][0] == token[0]; j++) {
+		const char *kw;
+		for (int j = start; (kw = keywords[j]) != NULL; j++) {
+			if (kw[0] != token[0]) {
+				break;
+			}
 			if (strcmp(token, keywords[j]) == 0) {
 				found = j;
 				break;
@@ -770,7 +799,7 @@ match_identifier(TSLexer *lexer, const bool *valid)
 		break;
 	case K__EOF:
 		// end of file marker, eat it all - this is valid *everywhere*
-		while (!lexer->eof(lexer)) {
+		while (lexer->lookahead) {
 			lexer->advance(lexer, false);
 		}
 		lexer->result_symbol = END_FILE;
@@ -801,14 +830,18 @@ match_hash_or_shebang(TSLexer *lexer, const bool *valid)
 		} else {
 			return (false);
 		}
-		while ((!is_eol(c)) && (!lexer->eof(lexer))) {
+		while ((!is_eol(c)) && (c)) {
 			lexer->advance(lexer, false);
+			c = lexer->lookahead;
 		}
+		// consume the newline
+		lexer->advance(lexer, false);
 		lexer->mark_end(lexer);
 		return (true);
 	} else {
 		// not sure there are any parse contexts where this is invalid
 		// actually!
+		assert(0);
 		return (false);
 	}
 }
@@ -817,14 +850,16 @@ static bool
 match_line_comment(TSLexer *lexer, const bool *valid)
 {
 	int c = lexer->lookahead;
-	if (!valid[LINE_COMMENT]) {
+	assert(c == '/');
+	if (!valid[COMMENT]) {
 		return (false);
 	}
-	while ((!is_eol(c)) && (!lexer->eof(lexer))) {
+	while ((!is_eol(c)) && (c)) {
 		lexer->advance(lexer, false);
+		c = lexer->lookahead;
 	}
 	lexer->mark_end(lexer);
-	lexer->result_symbol = LINE_COMMENT;
+	lexer->result_symbol = COMMENT;
 	return (true);
 }
 
@@ -834,11 +869,11 @@ match_block_comment(TSLexer *lexer, const bool *valid)
 	int c = lexer->lookahead;
 	assert(c == '*');
 
-	if (!valid[BLOCK_COMMENT]) {
+	if (!valid[COMMENT]) {
 		return (false);
 	}
 	int state = 0;
-	while (!lexer->eof(lexer)) {
+	while (c != 0) {
 		lexer->advance(lexer, false);
 		c = lexer->lookahead;
 		switch (state) {
@@ -852,13 +887,14 @@ match_block_comment(TSLexer *lexer, const bool *valid)
 				// closing comment, hurrah!
 				lexer->advance(lexer, false);
 				lexer->mark_end(lexer);
-				lexer->result_symbol = BLOCK_COMMENT;
+				lexer->result_symbol = COMMENT;
 				return (true);
 			}
 			state = 0;
 			break;
 		}
 	}
+
 	return (false); // unterminated
 }
 
@@ -870,7 +906,7 @@ match_nest_comment(TSLexer *lexer, const bool *valid)
 	int prev = 0;
 	assert(c == '+');
 
-	if (!valid[NESTING_COMMENT]) {
+	if (!valid[COMMENT]) {
 		return (false);
 	}
 
@@ -891,7 +927,7 @@ match_nest_comment(TSLexer *lexer, const bool *valid)
 					// outtermost closing comment, hurrah!
 					lexer->advance(lexer, false);
 					lexer->mark_end(lexer);
-					lexer->result_symbol = NESTING_COMMENT;
+					lexer->result_symbol = COMMENT;
 					return (true);
 				}
 				c = 0;
@@ -900,6 +936,284 @@ match_nest_comment(TSLexer *lexer, const bool *valid)
 		prev = c;
 	}
 	return (false);
+}
+
+static bool
+match_number_suffix(
+    TSLexer *lexer, const bool *valid, bool is_float, bool no_suffix)
+{
+	int  c;
+	bool seen_l = false;
+	bool seen_i = false;
+	bool seen_u = false;
+	;
+	bool seen_f = false;
+	int  tok    = 0;
+	bool done   = false;
+
+	while (((c = lexer->lookahead) != 0) && (!no_suffix) && !done) {
+		switch (c) {
+		case 'u':
+		case 'U': // we can treat both u and U identically
+			if (seen_u || seen_i || seen_f || is_float) {
+				return (false);
+			}
+			seen_u = true;
+			tok    = L_INT;
+			break;
+
+		case 'f':
+		case 'F':
+			if (seen_u || seen_f || seen_i) {
+				return (false);
+			}
+			seen_f = true;
+			tok    = L_FLOAT;
+			break;
+
+		case 'i':
+			// i means its an imaginary floating point, and it
+			// *must* be the last thing seen.  (It's also
+			// deprecated.)
+			if (seen_i || seen_u) {
+				return (false);
+			}
+			tok    = L_FLOAT;
+			seen_i = true;
+			break;
+
+		case 'L':
+			// L can mean long, or it can mean real
+			// it conflicts with f, F, and must appear before i.
+			if (seen_l || seen_f || seen_i) {
+				return (false);
+			}
+			seen_l = true;
+			break;
+
+		default:
+			done = true;
+			break;
+		}
+		if (!done) {
+			lexer->advance(lexer, false);
+		}
+	}
+
+	// what follows the suffix must *NOT* be digit or a number.
+	if (isalnum(c) || (c > 0x7f && !is_eol(c))) {
+		return (false);
+	}
+	if (is_float) {
+		tok = L_FLOAT;
+	}
+	if (valid[L_INT] && tok != L_FLOAT) {
+		lexer->result_symbol = L_INT;
+		lexer->mark_end(lexer);
+		return (true);
+	}
+	if (valid[L_FLOAT] && tok != L_INT) {
+		lexer->result_symbol = L_FLOAT;
+		lexer->mark_end(lexer);
+		return (true);
+	}
+	return (false);
+}
+
+static bool
+match_number(TSLexer *lexer, const bool *valid)
+{
+	// starting item can be a digit or .
+	// if it is '.', then it can be the start of a number,
+	// the "." by itself, or "..", or "...".  We handle
+	// the forms here in this one place to make it easy.
+	// Note that there are ambiguities in the way DMD handles
+	// decimal points.  For example, 0..stringof is illegal,
+	// but so is 00.stringof, but 0.stringof is ok and so is 00.
+	// Some of this feels like grammar bugs in DMD's implementation
+	// and we have not elected to be bug-for-bug compatible.
+	int  c = lexer->lookahead;
+	int  next;
+	int  prev;
+	bool is_float  = false;
+	bool is_hex    = false;
+	bool is_bin    = false;
+	bool has_digit = false;
+	bool has_dot   = false;
+	bool in_exp    = false;
+	bool was_dot   = false; // next must be a digit
+	bool result    = false;
+	bool no_suffix = false;
+
+	if (c == '.') {
+		if (!(valid[S_DOT] || valid[S_RANGE] || valid[S_ELLIPSES] ||
+		        valid[L_FLOAT])) {
+			return (false);
+		}
+		lexer->advance(lexer, false);
+		c = lexer->lookahead;
+		if (valid[S_DOT]) {
+			lexer->result_symbol = S_DOT;
+			lexer->mark_end(lexer);
+			result = true;
+		}
+		if (c == '.') { // either .., or ...
+			lexer->advance(lexer, false);
+			c = lexer->lookahead;
+			if (valid[S_RANGE]) {
+				lexer->result_symbol = S_RANGE; // ..
+				lexer->mark_end(lexer);
+				result = true;
+			}
+			lexer->advance(lexer, false);
+			if (valid[S_ELLIPSES] && c == '.') {
+				lexer->advance(lexer, false);
+				lexer->result_symbol = S_ELLIPSES;
+				lexer->mark_end(lexer);
+				result = true;
+			}
+			// cannot be a number, we might be a sole dot.
+			return (result);
+		}
+
+		// at this point, we either have a digit, or
+		// something that is not a valid number (and thus the sole dot
+		// might apply from above).  Note that underscores are *not*
+		// permitted as the first character after the decimal point.
+		if (!isdigit(c)) {
+			return (result);
+		}
+		has_dot = true;
+
+	} else if (c == '0') {
+		// the next value can be b, B, x, X indicating a base,
+		// a dot (making this a floating point number) or a digit or an
+		// underscore. if it is anything else, then we have just the
+		// value 0 (but it might have a suffix -- for example 0f)
+		lexer->advance(lexer, false);
+		c = lexer->lookahead;
+		switch (c) {
+		case 'b':
+		case 'B':
+			is_bin = true;
+			lexer->advance(lexer, false);
+			break;
+		case 'x':
+		case 'X':
+			is_hex = true;
+			lexer->advance(lexer, false);
+			break;
+		default:
+			has_digit = true;
+			break;
+		}
+	}
+
+	if (!(valid[L_INT] || valid[L_FLOAT])) {
+		return (false);
+	}
+
+	bool done = false;
+	while (((next = lexer->lookahead) != 0) && (!done)) {
+		prev = c;
+		c    = next;
+		if ((c > 0x7f) || isspace(c) || (c == ';')) {
+			// optimization: not a valid number, that ends the
+			// sequence
+			break;
+		}
+		if (is_bin && (c == '0') || (c == '1')) {
+			lexer->advance(lexer, false);
+			lexer->mark_end(lexer);
+			has_digit = true;
+			continue;
+		} else if (isdigit(c) ||
+		    (is_hex && (!in_exp) && (isxdigit(c)))) {
+			lexer->advance(lexer, false);
+			lexer->mark_end(lexer);
+			has_digit = true;
+			continue;
+		}
+
+		switch (c) {
+		case '.':
+			// if we already have a decimal, or we haven't yet
+			// collected one, or we are in the exponent, then this
+			// dot is not part of our number.  (If we haven't seen
+			// a digit yet, then this will be a faield parse.)
+			// also binary numbers don't support floating point.
+			if (!has_digit || has_dot || in_exp || is_bin) {
+				done = true;
+				break;
+			}
+			lexer->advance(lexer, false);
+			c = lexer->lookahead;
+			// if the next character is a valid digit (note that
+			// binary doesn't support this, then we're good
+			if (isdigit(c) || (is_hex && isxdigit(c))) {
+				lexer->mark_end(lexer);
+				has_dot = true;
+				continue;
+			}
+			// look ahead to see if the next thing looks like a
+			// property. if it does, then this is a property
+			// lookup, otherwise we want to consume the dot and
+			// make it a floating point number. Note that lone
+			// trailing periods like 1. are nuts, but this is what
+			// DMD does.
+			if (!(isalnum(c) || c == '_' ||
+			        (c > 0x7f && !is_eol(c)))) {
+				lexer->mark_end(lexer);
+				has_dot = true;
+			}
+
+			no_suffix = true;
+			done      = true;
+			break;
+
+		case '_':
+			// an embedded (or possibly trailing) underscore.
+			// Allow underscores immediately after the exponent.
+			if ((in_exp) || has_digit) {
+				lexer->advance(lexer, false);
+				continue;
+			}
+			// either after 0[xXbB] or decimal.
+			done = true;
+			break;
+
+		case 'e':
+		case 'E':
+		case 'p':
+		case 'P':
+			if (in_exp || is_bin) {
+				return (false);
+			}
+			if (is_hex && (c == 'e' || c == 'E')) {
+				return (false);
+			}
+			if ((!is_hex) && (c == 'p' || c == 'P')) {
+				return (false);
+			}
+			lexer->advance(lexer, false);
+			c = lexer->lookahead;
+			if ((c == '+') || (c == '-')) {
+				lexer->advance(lexer, false);
+			}
+			has_digit = false; // so we need
+			in_exp    = true;
+			continue;
+
+		default:
+			done = true;
+			break;
+		}
+	}
+	if (!has_digit) {
+		return (false);
+	}
+	return (
+	    match_number_suffix(lexer, valid, has_dot || in_exp, no_suffix));
 }
 
 void *
@@ -932,10 +1246,10 @@ tree_sitter_d_external_scanner_scan(
 	bool matched = false;
 
 	int c = lexer->lookahead;
-
 	// consume whitespace -- we also skip newlines here
-	while ((isspace(c) || is_eol(c)) && (!lexer->eof(lexer))) {
+	while ((isspace(c) || is_eol(c)) && (c)) {
 		lexer->advance(lexer, true);
+		c = lexer->lookahead;
 	}
 
 	if (lexer->eof(lexer)) { // in case we had ending whitespace
@@ -948,18 +1262,21 @@ tree_sitter_d_external_scanner_scan(
 		return (match_identifier(lexer, valid));
 	}
 
-	// TODO: special cases:  . numbers [0-9]
+	if (c == '.' || isdigit(c)) {
+		return (match_number(lexer, valid));
+	}
 
+	if (c == '\'') {
+		return (valid[L_CHAR] ? match_char_literal(lexer) : false);
+	}
 	if (c == '"') { // double quoted string, always unambiguous
-		if (valid[L_DQSTRING]) {
-			return (match_dq_string(lexer));
-		}
+		return (valid[L_DQSTRING] ? match_dq_string(lexer) : false);
 	}
 
 	if (c == '`') { // raw string, also unambiguous
-		if (valid[L_BQSTRING]) {
-			return (match_raw_string(lexer, '`', L_BQSTRING));
-		}
+		return (valid[L_BQSTRING]
+		        ? match_raw_string(lexer, '`', L_BQSTRING)
+		        : false);
 	}
 
 	// these are all normal symbols not needing special treatment
@@ -974,6 +1291,7 @@ tree_sitter_d_external_scanner_scan(
 	if (c == '/') {
 		// can be one of three comment forms, or /, or /=
 		lexer->advance(lexer, false);
+		c = lexer->lookahead;
 		if (c == '/') {
 			return (match_line_comment(lexer, valid));
 		}

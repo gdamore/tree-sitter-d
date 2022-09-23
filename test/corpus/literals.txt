@@ -1,0 +1,209 @@
+==================
+Integers
+==================
+
+123
+0b10
+0xFF
+123L
+456uL
+
+// solo
+---
+(source_file
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (comment))
+==================
+Zeros
+==================
+
+
+0
+0U
+0u
+0L
+0Lu
+0LU
+0UL
+0uL
+0_
+0__00
+// hex
+0x0
+0X0
+// binary
+0b0
+0B0
+// floating point
+0.
+0.0
+.0
+0e0
+0e-0
+0e+0
+0x0p0
+0x0p-0
+0x0p+0
+// type suffixes
+0.0i
+0i
+0F
+0.0f
+// with exponents
+0.0e1i
+0x0p20f
+
+---
+(source_file
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (int_literal)
+    (comment)
+    (int_literal)
+    (int_literal)
+    (comment)
+    (int_literal)
+    (int_literal)
+    (comment)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (comment)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (comment)
+    (float_literal)
+    (float_literal))
+
+==================
+Floats
+==================
+
+123.
+.123
+12.345
+12.3L
+456i
+456f
+456F
+456Fi
+1_000_000.0
+// exponents
+1e20
+1e-20
+1e+20
+1E20
+1E-20
+1E+20
+0x12P30
+0x12P30F
+// solo
+---
+(source_file
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (comment)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (float_literal)
+    (comment))
+
+==================
+Characters
+==================
+'a'
+'\x12'
+'\ufeff'
+'\U01EF1234'
+'\&copy;'
+'\r'
+'\n'
+'\0'
+'\01'
+'\012'
+'\''
+'\\'
+
+---
+(source_file
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal)
+    (char_literal))
+
+==================
+Strings
+==================
+"abc"
+"a\"bc"
+"a\u1234b\\"
+# backquoted string
+`abc def
+`
+// raw string
+r"
+this is some text
+"
+// some strings with suffixes
+"abc"w
+"abc"c
+"abc"d
+`yabba
+dabba
+do!
+`d
+r"🥂"w
+---
+(source_file
+  (string_literal)
+  (string_literal)
+  (string_literal)
+  (directive)
+  (string_literal)
+  (comment)
+  (string_literal)
+  (comment)
+  (string_literal)
+  (string_literal)
+  (string_literal)
+  (string_literal)
+  (string_literal))

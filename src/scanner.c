@@ -82,7 +82,6 @@ enum TokenType {
 	S_TILDE,      // ~
 	S_APPEND,     // ~=
 	S_AT,         // @
-	S_BOM,        // \uFEFF
 	S_DOT,        // .
 	S_RANGE,      // ..
 	S_ELLIPSES,   // ...

@@ -287,7 +287,7 @@ module.exports = grammar({
             // TODO: $._postblit,
             // TODO: $._invariant
             // TODO: $._unittest
-            // TODO: $._alias_this,
+            $.alias_this,
             // TODO: $._static_ctor,
             // TODO: $._static_dtor,
             // TODO: $._shared_static_ctor,
@@ -370,9 +370,13 @@ module.exports = grammar({
         _declaration: $ => choice(
             //     // TODO: $.function_declaration,
             $._var_declarations,
-            //     // TODO: $.alias_declaration,
-            //     // TODO: $.aggregate_declaration,
-            //     // TODO: $.enum_declaration,
+            $.alias_declaration,
+            $.alias_assign,
+            // TODO: class_declaration
+            // TODO: interface_declaration
+            $.struct_declaration,
+            $.union_declaration,
+            $.enum_declaration,
             $.import_declaration,
             //     // TODO: conditional_declaration,
             //     // TODO: static_foreach_declaration,
@@ -410,7 +414,7 @@ module.exports = grammar({
         _declarator_id: $ => choice(
             field('variable', $.identifier),
             seq(
-               field('variable', $.identifier),
+                field('variable', $.identifier),
                 optional(paren(commaSep($._template_parameter))),
                 $._equal,
                 field('value', $._initializer)),
@@ -464,6 +468,29 @@ module.exports = grammar({
             optional(paren(commaSep($._template_parameter))),
             $._equal,
             field('value', $._initializer)),
+
+        //
+        // Alias Declaration
+        //
+        alias_declaration: $ => choice(
+            seq('alias', repeat($._storage_class), $._basic_type, $._declarators, ';'),
+            // TODO: seq('alias', repeat($._storage_class), $._basic_type, $._func_declarator, ';'),
+            seq('alias', commaSep1($.alias_assignment)),
+        ),
+        alias_assignment: $ => choice(
+            seq($.identifier,
+                optional($._template_parameters), $._equal,
+                repeat($._storage_class), $.type),
+            seq($.identifier,
+                optional($._template_parameters), $._equal,
+                repeat($._storage_class), $.function_literal),
+            // TODO: seq($.identifier, optional($._template_parameters), $._equal, $._basic_type, $._parameters, optional($.member_function_attributes)),
+        ),
+
+        //
+        // Alias Assign (type alias)
+        //
+        alias_assign: $ => seq($.identifier, $._equal, $.type),
 
         //
         // 3.4 Types
@@ -535,7 +562,6 @@ module.exports = grammar({
         //
         // Typeof
         //
-
         typeof: $ => choice(
             seq('typeof', paren(commaSep1($._expression))),
             seq('typeof', paren('return')),
@@ -568,8 +594,10 @@ module.exports = grammar({
             seq('@',
                 field('name', $.identifier),
                 paren(field('arguments', optional($._arg_list)))),
-            // TODO: seq($._at, $._template_instance),
-            // TODO: seq($._at, $._template_instance, seq($._lparen, $._rparen))
+            seq('@', field('template', $.template_instance)),
+            seq('@',
+                field('template', $.template_instance,
+                    paren(field('arguments', optional($._arg_list)))))
         ),
 
         _attr_specifier: $ => prec.left(seq($._attr, optional($._decl_block))),
@@ -589,12 +617,13 @@ module.exports = grammar({
                     "Windows",
                     "System",
                     "Objective-C",
+                    seq("C++", ',', $._qualified_id),
+                    seq("C++", ',', $._namespace_list),
                     seq("C++", ',', 'class'),
                     seq("C++", ',', 'struct'),
-                    // TODO: namespace list
-                    seq("C++", ',', $._qualified_id),
                 ))),
 
+        _namespace_list: $ => seq(commaSep1($._conditional_expression), optional(',')),
 
         _decl_block: $ => choice(
             $._decldef,
@@ -625,6 +654,9 @@ module.exports = grammar({
         //
         // 3.7 EXPRESSIONS
         //
+
+        // in statements, most uses of expressions can use comma form
+        _comma_expression: $ => commaSep1($._expression),
 
         // this is basically "AssignExpression", but we have taken the liberty
         // to separate out things that are *necesarily* unable to appear on the
@@ -970,6 +1002,203 @@ module.exports = grammar({
 
         //
         // 3.8 Statements
+        //
+
+        _statement: $ => choice(
+            $._empty_statement,
+            $._non_empty_statement,
+        ),
+
+        _empty_statement: $ => ';',
+
+        _non_empty_statement: $ => choice(
+            $._non_empty_statement_no_case_no_default,
+            // TODO: caseStatement
+            // TODO: caseRangeStatement
+            // TODO: defaultStatement
+        ),
+
+        _scope_statement: $ => choice(
+            $._non_empty_statement,
+            $._block_statement,
+        ),
+
+        _non_empty_statement_no_case_no_default: $ => choice(
+            $._labeled_statement,
+            $._expression_statement,
+            $._declaration_statement,
+            $.if_statement,
+            $.while_statement,
+            $.do_statement,
+            // TODO: many :-)
+            // for_statement
+            // foreach_statement
+            $.switch_statement,
+            $.final_switch_statement,
+            $.continue_statement,
+            $.break_statement,
+            $.return_statement,
+            $.goto_statement,
+            $.with_statement,
+            $.synchronized_statement,
+            // try_statement
+            // scope_guard_statement
+            // asm_statement
+            // mixin_statement
+            // foreach_range_stateement
+            // pragma_statement
+            // conditional_statement
+            // static_foreach_statement
+            // static assert
+            // template_mixin
+            $.import_declaration,
+        ),
+
+        _labeled_statement: $ => seq('$identifier', ':', optional($._statement)),
+
+        _block_statement: $ => brace(repeat($._statement)),
+
+        _expression_statement: $ => seq(commaSep1($._statement), ';'),
+
+        _declaration_statement: $ => seq(repeat($._storage_class), $._declaration),
+
+        if_statement: $ =>
+            seq('if',
+                paren(field('condition', $._if_condition)),
+                field('then', $._scope_statement),
+                optional(seq('else', field('else', $._scope_statement)))),
+
+        _if_condition: $ => choice(
+            $._expression,
+            seq('auto', $.identifier, $.equal, $._comma_expression),
+            seq('scope', $.identifier, $.equal, $._comma_expression),
+            seq(repeat1($._type_ctor), $.identifier, $.equal, $._comma_expression),
+            seq(repeat($._type_ctor), $._basic_type, $._declarator, $.equal, $._comma_expression),
+        ),
+
+        while_statement: $ => seq(
+            'while',
+            paren(field('condition', $._if_condition)),
+            field('do', $._scope_statement)
+        ),
+
+        do_statement: $ => seq(
+            'do',
+            field('do', $._scope_statement),
+            'while',
+            paren(field('condition', $._comma_expression))
+        ),
+
+        // TODO : for/foreach
+
+        switch_statement: $ =>
+            seq('switch', paren(commaSep1($._expression), $._scope_statement)),
+
+        final_switch_statement: $ =>
+            seq($.final, 'switch', paren($._comma_expression), $._scope_statement),
+
+        continue_statement: $ => seq('continue', optional($.identifier), ';'),
+
+        break_statement: $ => seq('break', optional($.identifier), ';'),
+
+        return_statement: $ => seq('return', optional($._comma_expression), ';'),
+
+        goto_statement: $ => choice(
+            seq('goto', $.identifier, ';'),
+            seq('goto', 'default', ';'),
+            seq('goto', 'case', ';'),
+            seq('goto', 'case', $._comma_expression, ';')
+        ),
+
+        with_statement: $ =>
+            seq('with',
+                paren(choice(
+                    $._comma_expression,
+                    $._symbol,
+                    $.template_instance
+                )),
+                $._scope_statement),
+
+        synchronized_statement: $ => choice(
+            seq('synchronized', $._scope_statement),
+            seq('synchronized', paren($._comma_expression), $._scope_statement)
+        ),
+
+        //
+        // 3.9 Structs and Unions
+        //
+
+        struct_declaration: $ => choice(
+            seq('struct', $.identifier, ';'),
+            seq('struct', $.identifier, brace(repeat($._decldef))),
+            seq('struct', brace(repeat($._decldef))), // anonymous struct
+            // TODO: struct_template_declaration
+        ),
+
+        union_declaration: $ => choice(
+            seq('union', $.identifier, ';'),
+            seq('union', $.identifier, brace(repeat($._decldef))),
+            seq('union', brace(repeat($._decldef))), // anonymous union
+            // TODO: union_template_declaration
+        ),
+
+        //
+        // 3.10 Classes
+        //
+
+        alias_this: $ => seq('alias', $.identifier, 'this', ';'),
+
+        //
+        // 3.11 Interfaces
+        //
+        interface_declaration: $ =>
+            choice(
+                seq('interface', $.identifier, ';'),
+                // TODO: base interface
+                // TODO: interface template Declaration
+            ),
+
+        //
+        // 3.12 Enums
+        //
+        enum_declaration: $ =>
+            choice(
+                seq('enum', $.identifier, $._enum_body),
+                seq('enum', $.identifier, ':', $.type, $._enum_body),
+                seq('enum', ':', $.type, brace($._enum_members)), // anonymous
+                // NB: grammar also lists this with _enum_members, but
+                // that's just a degenerate case of this one.
+                seq('enum', brace($._anonymous_enum_members)),
+            ),
+
+        _enum_body: $ => choice(brace($._enum_members), ';'),
+        _enum_members: $=> commaSep1($.enum_member),
+
+        _enum_member_attribute: $ =>
+            choice(
+                $.deprecated_attr,
+                $.user_defined_attr,
+                seq('@', 'disable'),
+            ),
+
+        enum_member: $ =>
+            seq(
+                repeat($._enum_member_attribute),
+                $.identifier,
+                optional(seq($.equal, $._expression))
+            ),
+
+        _anonymous_enum_member: $ => choice(
+            $.enum_member,
+            seq($.type, $.equal, $._expression),
+        ),
+
+        _anonymous_enum_members: $=> commaSep1($._anonymous_enum_member),
+
+
+        //
+        // 3.13 Functions
+        //
 
         //
         // 3.14 Templates
@@ -1009,6 +1238,8 @@ module.exports = grammar({
             // TODO: template_alias_parameter
             $._template_sequence_parameter,
         ),
+
+        _template_parameters: $ => paren(commaSep($._template_parameter)),
 
         _template_type_parameter: $ => seq(
             optional('this'), // covers TemplateThisParameter
@@ -1055,6 +1286,14 @@ module.exports = grammar({
         [
             $.mixin_type,
             $.mixin_declaration,
+        ],
+        [
+            $._symbol_tail,
+            $._conditional_expression,
+        ],
+        [
+            $._storage_class,
+            $.enum_declaration
         ]
     ],
 })
@@ -1074,4 +1313,8 @@ function paren(...rules) {
 
 function bracket(...rules) {
     return seq('[', ...rules, ']')
+}
+
+function brace(...rules) {
+    return seq('{', ...rules, '}')
 }

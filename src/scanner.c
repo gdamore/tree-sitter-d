@@ -219,6 +219,7 @@ static const char *const keywords[N_TOKENS] = {
 	[K_CAST]             = "cast",
 	[K_CATCH]            = "catch",
 	[K_CDOUBLE]          = "cdouble",
+	[K_CENT]             = "cent",
 	[K_CFLOAT]           = "cfloat",
 	[K_CHAR]             = "char",
 	[K_CLASS]            = "class",
@@ -778,11 +779,17 @@ match_identifier(TSLexer *lexer, const bool *valid)
 	if (start != 0) {
 		const char *kw;
 		for (int j = start; (kw = keywords[j]) != NULL; j++) {
+			int rv;
 			if (kw[0] != token[0]) {
 				break;
 			}
-			if (strcmp(token, keywords[j]) == 0) {
+			rv = strcmp(token, keywords[j]);
+			if (rv == 0) {
 				found = j;
+				break;
+			} else if (rv < 0) {
+				// slight optimization saves searching
+				// many user defined symbols are just a single character long
 				break;
 			}
 		}
@@ -1066,10 +1073,9 @@ match_number(TSLexer *lexer, const bool *valid)
 			}
 			lexer->advance(lexer, false);
 			if (valid[S_ELLIPSES] && c == '.') {
-				lexer->advance(lexer, false);
-				lexer->result_symbol = S_ELLIPSES;
 				lexer->mark_end(lexer);
-				result = true;
+				lexer->result_symbol = S_ELLIPSES;
+				result               = true;
 			}
 			// cannot be a number, we might be a sole dot.
 			return (result);

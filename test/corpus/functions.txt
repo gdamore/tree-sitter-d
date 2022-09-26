@@ -1,0 +1,50 @@
+==================
+Basic Function
+==================
+
+int f() { return 0; }
+---
+(source_file
+    (module
+        (func_declaration
+            (scalar)
+            (identifier)
+            (parameters)
+            (function_body
+                (block_statement
+                    (return_statement
+                        (int_literal)
+                    )
+                )
+            )
+        )
+    )
+)
+
+==================
+Single Parameter Function
+==================
+
+int f(int c) { return c; }
+---
+(source_file
+    (module
+        (func_declaration
+            (scalar)
+            (identifier)
+            (parameters
+                (parameter
+                    (scalar)
+                    (identifier)
+                )
+            )
+            (function_body
+                (block_statement
+                    (return_statement
+                        (identifier)
+                    )
+                )
+            )
+        )
+    )
+)

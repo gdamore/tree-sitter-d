@@ -1,0 +1,6 @@
+==================
+Module Declaration
+==================
+module test.blah.bah;
+---
+(source_file (module (module_declaration (identifier) (identifier) (identifier))))

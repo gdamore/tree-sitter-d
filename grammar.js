@@ -306,8 +306,8 @@ module.exports = grammar({
                 seq($.module_declaration, prec(-1, repeat($._decldef))),
                 repeat1($._decldef))),
 
-        _decldef: $ => choice( // TODO: this is largely wrong
-            $._attr_specifier,
+        _decldef: $ => choice(
+            $._attribute_specifier,
             $._declaration,
             $.constructor,
             $.destructor,
@@ -315,11 +315,12 @@ module.exports = grammar({
             $.invariant,
             $.unittest,
             $.alias_this,
-            // TODO: $._cond_decl,
             $.debug_specification,
             $.version_specification,
             // static assert included in declaration
+            // conditional_declaration in declaration
             // TODO: $._template_decl,
+            // TODO: $._template_mixin_decl,
             // TODO: $._template_mixin,
             $.mixin_declaration,
             $._empty_decl,
@@ -684,7 +685,8 @@ module.exports = grammar({
                         paren(field('arguments', optional($._arg_list)))))
             )),
 
-        _attr_specifier: $ => prec.left(seq($._attribute, optional($._decl_block))),
+        _attribute_specifier: $ =>
+            prec.left(seq($._attribute, optional($._decl_block))),
 
         _attribute: $ => prec.left(choice(
             $.linkage_attribute,
@@ -745,7 +747,8 @@ module.exports = grammar({
         _decl_block: $ =>
             prec(1, choice($._decldef, brace(repeat($._decldef)))),
 
-        _arg_list: $ => commaSep1Comma($._expression),
+        _arg_list: $ =>
+            prec.left(commaSep1Comma($._expression)),
 
         //
         // 3.6 PRAGMAS
@@ -1158,9 +1161,9 @@ module.exports = grammar({
 
         _non_empty_statement: $ => choice(
             $._non_empty_statement_no_case_no_default,
-            // TODO: caseStatement
-            // TODO: caseRangeStatement
-            // TODO: defaultStatement
+            $.case_statement,
+            $.case_range_statement,
+            $.default_statement,
         ),
 
         _scope_statement: $ => choice(
@@ -1302,14 +1305,16 @@ module.exports = grammar({
             seq('switch', paren(commaSep1($._expression), $._scope_statement)),
 
         case_statement: $ =>
-            seq('case', $._arg_list, ':', optional($._scope_statement_list)),
+            prec.left(
+                seq('case', $._arg_list, ':', optional($._scope_statement_list))),
 
-        case_range_staement: $ =>
-            seq('case', $._expression, ':', '..', 'case', $._expression,
-                optional($._scope_statement_list)),
+        case_range_statement: $ =>
+            prec.left(
+                seq('case', $._expression, ':', '..', 'case', $._expression,
+                    optional($._scope_statement_list))),
 
         default_statement: $ =>
-            seq('default', ':', optional($._scope_statement_list)),
+            prec.left(seq('default', ':', optional($._scope_statement_list))),
 
         _scope_statement_list: $ =>
             repeat1(choice(

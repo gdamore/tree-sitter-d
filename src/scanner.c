@@ -27,13 +27,10 @@ enum TokenType {
 	SHEBANG,   // #!
 	L_INT,
 	L_FLOAT,
-	L_CHAR,       // 'c', or '\x12', or similar
-	L_DQSTRING,   // "string" may include escapes
-	L_BQSTRING,   // `string` (no escapes permitted)
-	L_RQSTRING,   // r"string" (no escapes permitted)
-	S_DOT,        // .
-	S_RANGE,      // ..
-	S_ELLIPSES,   // ...
+	L_CHAR,     // 'c', or '\x12', or similar
+	L_DQSTRING, // "string" may include escapes
+	L_BQSTRING, // `string` (no escapes permitted)
+	L_RQSTRING, // r"string" (no escapes permitted)
 	K_ABSTRACT,
 	K_ALIAS,
 	K_ALIGN,
@@ -599,7 +596,8 @@ match_identifier(TSLexer *lexer, const bool *valid)
 				break;
 			} else if (rv < 0) {
 				// slight optimization saves searching
-				// many user defined symbols are just a single character long
+				// many user defined symbols are just a single
+				// character long
 				break;
 			}
 		}
@@ -862,34 +860,8 @@ match_number(TSLexer *lexer, const bool *valid)
 	bool no_suffix = false;
 
 	if (c == '.') {
-		if (!(valid[S_DOT] || valid[S_RANGE] || valid[S_ELLIPSES] ||
-		        valid[L_FLOAT])) {
-			return (false);
-		}
 		lexer->advance(lexer, false);
-		if (valid[S_DOT]) {
-			lexer->result_symbol = S_DOT;
-			lexer->mark_end(lexer);
-			result = true;
-		}
 		c = lexer->lookahead;
-		if (c == '.') { // either .., or ...
-			lexer->advance(lexer, false);
-			if (valid[S_RANGE]) {
-				lexer->result_symbol = S_RANGE; // ..
-				lexer->mark_end(lexer);
-				result = true;
-			}
-			c = lexer->lookahead;
-			if (valid[S_ELLIPSES] && c == '.') { 
-				lexer->advance(lexer, false);
-				lexer->mark_end(lexer);
-				lexer->result_symbol = S_ELLIPSES;
-				result               = true;
-			}
-			// cannot be a number, we might be a sole dot.
-			return (result);
-		}
 
 		// at this point, we either have a digit, or
 		// something that is not a valid number (and thus the sole dot

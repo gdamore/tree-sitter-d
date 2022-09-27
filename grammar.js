@@ -71,60 +71,6 @@ module.exports = grammar({
         $._dqstring, // conventional "string" (may include escapes)
         $._bqstring, // wsiwyg `string`
         $._rqstring, // wsiwyg r"string"
-        // '{',
-        // '}',
-        // '/',
-        // '/=',
-        // $._and,
-        // '&=',
-        // '&&',
-        // '|',
-        // '|=',
-        // '||',
-        // $._minus,
-        // '-=',
-        // '--',
-        // $._plus,
-        // '+=',
-        // '++',
-        // '<',
-        // '<=',
-        // '<<',
-        // '<<=',
-        // '>',
-        // '>=',
-        // '>>=',
-        // '>>>=',
-        // '>>',
-        // '>>>',
-        // '!',
-        // '!=',
-        // '(',
-        // ')',
-        // '[',
-        // ']',
-        // '?',
-        // ',',
-        // ';',
-        // ':',
-        // '$',
-        // $._equal,
-        // $._equalequal,
-        // '=>',
-        // '*',
-        // '*=',
-        // '%',
-        // '%=',
-        // '^',
-        // '^=',
-        // '^^',
-        // '^^=',
-        // '~',
-        // '~=',
-        // '@',
-        $._dot,
-        '..',
-        '...',
         'abstract',
         'alias',
         'align',
@@ -267,9 +213,6 @@ module.exports = grammar({
         $._basic_type,
 
         // alias inlines
-        $.dot,
-        // $.equal,
-        // $.equalequal,
         $.final,
         $.in,
         $.is,
@@ -320,7 +263,7 @@ module.exports = grammar({
             $.mixin_declaration,
             $._empty_decl,
         ),
-        // a few thisn are already in declaration, so not included in _decldef:
+        // a few things are already in declaration, so not included in _decldef:
         // - static_assert,
         // - conditional_declaration
         // - template_mixin_declaration
@@ -333,7 +276,6 @@ module.exports = grammar({
         // These get inlined for highlighting, etc.
         //
         // and: $ => alias($._and, '&'),
-        dot: $ => alias($._dot, '.'),
         final: $ => alias($._final, 'final'),
         in: $ => alias($._in, 'in'),
         is: $ => alias($._is, 'is'),
@@ -356,7 +298,7 @@ module.exports = grammar({
         )),
 
         _module_fqn: $ => seq(
-            prec.left(2, field('package', repeat(seq($.identifier, $._dot)))),
+            prec.left(2, field('package', repeat(seq($.identifier, '.')))),
             prec.left(1, field('name', $.identifier))),
 
         //
@@ -585,10 +527,10 @@ module.exports = grammar({
 
         _basic_type: $ => prec.left(PREC.BASIC_TYPE, choice(
             $.scalar,
-            seq($.dot, $._qualified_id),
+            seq('.', $._qualified_id),
             $._qualified_id,
             $.typeof,
-            seq($.typeof, $.dot, $._qualified_id),
+            seq($.typeof, '.', $._qualified_id),
             seq($._type_ctor, paren($.type)),
             $._vector,
             // TODO: $.traits_expression,
@@ -624,24 +566,26 @@ module.exports = grammar({
             'void'
         ),
 
-        _type_suffix: $ => prec.left(choice(
-            '*',
-            bracket(),
-            bracket($._expression),
-            bracket($._expression, '..', $._expression),
-            bracket($.type),
-            seq('delegate', $.parameters, optional($._member_function_attributes)),
-            seq('function', $.parameters, repeat($._function_attribute)),
-        )),
+        _type_suffix: $ =>
+            prec.left(choice(
+                '*',
+                bracket(),
+                bracket($._expression),
+                bracket($._expression, '..', $._expression),
+                bracket($.type),
+                seq('delegate', $.parameters, optional($._member_function_attributes)),
+                seq('function', $.parameters, repeat($._function_attribute)),
+            )),
 
-        _qualified_id: $ => prec.left(PREC.QUALIFIED_ID, choice(
-            $.identifier,
-            seq($.identifier, $.dot, $._qualified_id),
-            $.template_instance,
-            seq($.identifier, $.dot, $._qualified_id),
-            prec(2, seq($.identifier, bracket($._expression))),
-            prec(1, seq($.identifier, bracket($._expression), $.dot, $._qualified_id)),
-        )),
+        _qualified_id: $ =>
+            prec.left(PREC.QUALIFIED_ID, choice(
+                $.identifier,
+                seq($.identifier, '.', $._qualified_id),
+                $.template_instance,
+                seq($.identifier, '.', $._qualified_id),
+                prec(2, seq($.identifier, bracket($._expression))),
+                prec(1, seq($.identifier, bracket($._expression), '.', $._qualified_id)),
+            )),
 
         //
         // Typeof
@@ -823,9 +767,9 @@ module.exports = grammar({
             $.pointer_expression,
             $.cast_expression,
             $.identifier,
-            seq($.dot, $.identifier),
+            seq('.', $.identifier),
             $.template_instance,
-            seq($.dot, $.template_instance),
+            seq('.', $.template_instance),
             $.ternary_expression,
             $.cast_expression,
             $.field_expression,
@@ -833,9 +777,9 @@ module.exports = grammar({
             $.index_expression,
             $.slice_expression,
             paren(commaSep1($._expression)),
-            seq($.scalar, $.dot, $.identifier),
-            seq(paren($.type), $.dot, $.identifier),
-            seq(paren($.type), $.dot, $.template_instance),
+            seq($.scalar, '.', $.identifier),
+            seq(paren($.type), '.', $.identifier),
+            seq(paren($.type), '.', $.template_instance),
             $.mixin_expression,
             $.new_expression,
             $.typeid_expression,
@@ -850,7 +794,7 @@ module.exports = grammar({
 
 
         field_expression: $ => prec.left(PREC.POSTFIX, seq(
-            field('parent', $._expression), $.dot,
+            field('parent', $._expression), '.',
             field('member', $.identifier)
         )),
 
@@ -1631,10 +1575,10 @@ module.exports = grammar({
             $.parameter,
             seq($.parameter, ','),
             seq($.parameter, ',', $._parameter_list),
-            seq(repeat($._variadic_arguments_attribute), alias('...',$.ellipses)),
+            seq(repeat($._variadic_arguments_attribute), alias('...', $.ellipses)),
         )),
 
-        ellipses: $=> '...',
+        ellipses: $ => '...',
 
         parameter: $ =>
             prec.left(seq(optional($._parameter_attributes),
@@ -1766,12 +1710,12 @@ module.exports = grammar({
 
         _template_argument_list: $ => commaSep1($.template_argument),
 
-        _symbol: $ => seq(optional($.dot), $._symbol_tail),
+        _symbol: $ => seq(optional('.'), $._symbol_tail),
 
         _symbol_tail: $ =>
             prec.left(choice(
-                seq($.identifier, optional(seq($.dot, $._symbol))),
-                seq($.template_instance, optional(seq($.dot, $._symbol)))
+                seq($.identifier, optional(seq('.', $._symbol))),
+                seq($.template_instance, optional(seq('.', $._symbol)))
             )),
 
         _template_single_arg: $ => choice(
@@ -1918,15 +1862,15 @@ module.exports = grammar({
 
         _mixin_template_name: $ =>
             choice(
-                seq($._dot, $._mixin_qualified_identifier),
+                seq('.', $._mixin_qualified_identifier),
                 $._mixin_qualified_identifier,
-                seq($.typeof, $.dot, $._mixin_qualified_identifier)),
+                seq($.typeof, '.', $._mixin_qualified_identifier)),
 
         _mixin_qualified_identifier: $ =>
             prec.left(choice(
                 $.identifier,
-                seq($.identifier, $._dot, $._mixin_qualified_identifier),
-                seq($.template_instance, $._dot, $._mixin_qualified_identifier),
+                seq($.identifier, '.', $._mixin_qualified_identifier),
+                seq($.template_instance, '.', $._mixin_qualified_identifier),
             )),
 
         /**************************************************
@@ -2134,8 +2078,8 @@ module.exports = grammar({
         _dot_identifier: $ =>
             choice(
                 $.identifier,
-                seq($.identifier, $._dot, $._dot_identifier),
-                seq($.scalar, $._dot, $.identifier),
+                seq($.identifier, '.', $._dot_identifier),
+                seq($.scalar, '.', $.identifier),
             ),
     },
 

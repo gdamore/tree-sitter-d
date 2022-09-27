@@ -34,7 +34,8 @@ const PREC = {
     QUALIFIED_ID: 20,
     DEPRECATED: 21, // deprecated attribute,  paren following always is part of
     CONSTRUCTOR: 22, // also destructor
-    BASIC_TYPE: 23, // type declarations
+    POSTBLIT: 23,
+    BASIC_TYPE: 24, // type declarations
 
     // These are keyword classes.  It helps us to discriminate cases where
     // a keyword can be associated with one group or another.  In some cases
@@ -310,12 +311,10 @@ module.exports = grammar({
             $._declaration,
             $.constructor,
             $.destructor,
-            // TODO: $._postblit,
-            // TODO: $.invariant,
+            $.postblit,
+            $.invariant,
             $.unittest,
             $.alias_this,
-            // TODO: $._static_dtor,
-            // TODO: $._shared_static_dtor,
             // TODO: $._cond_decl,
             $.debug_specification,
             $.version_specification,
@@ -801,8 +800,6 @@ module.exports = grammar({
             $.assert_expression,
             $.import_expression,
             $.is_expression,
-            // TODO: more (parenthesized, etc.)
-            // 
         ),
 
         // Pretty much anything can be assigned to in D, because
@@ -1304,6 +1301,22 @@ module.exports = grammar({
         switch_statement: $ =>
             seq('switch', paren(commaSep1($._expression), $._scope_statement)),
 
+        case_statement: $ =>
+            seq('case', $._arg_list, ':', optional($._scope_statement_list)),
+
+        case_range_staement: $ =>
+            seq('case', $._expression, ':', '..', 'case', $._expression,
+                optional($._scope_statement_list)),
+
+        default_statement: $ =>
+            seq('default', ':', optional($._scope_statement_list)),
+
+        _scope_statement_list: $ =>
+            repeat1(choice(
+                $.empty_statement,
+                $._non_empty_statement_no_case_no_default,
+                $.block_statement)),
+
         final_switch_statement: $ =>
             seq($.final, 'switch', paren($._comma_expression), $._scope_statement),
 
@@ -1399,6 +1412,17 @@ module.exports = grammar({
         // struct_member_initializers inlined above
         _struct_member_initializer: $ =>
             seq(optional(seq($.identifier, ':')), $._initializer),
+
+        //
+        // Postblit
+        //
+        postblit: $ =>
+            prec.left(PREC.POSTBLIT,
+                seq(
+                    'this', paren('this'),
+                    optional($._member_function_attributes),
+                    choice($.function_body, ';'),
+                )),
 
         //
         // Invariant

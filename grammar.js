@@ -180,7 +180,7 @@ module.exports = grammar({
         'ireal', // obsolete
         $._is,
         'lazy',
-        'long',
+        $._long,
         'macro', // obsolete?
         'mixin',
         'module',
@@ -596,7 +596,7 @@ module.exports = grammar({
             seq($.typeof, $.dot, $._qualified_id),
             seq($._type_ctor, paren($.type)),
             $._vector,
-            // TODO: traits_expression
+            $.traits_expression,
             $.mixin_expression,
         )),
 
@@ -611,7 +611,7 @@ module.exports = grammar({
             'ushort',
             'int',
             'uint',
-            'long',
+            $._long,
             'ulong',
             'cent', // deprecated
             'ucent', // deprecated
@@ -1395,10 +1395,10 @@ module.exports = grammar({
                 choice($._non_empty_statement, $.block_statement)),
 
         //
-        // AsmStatement
+        // Asm Statement
         //
         asm_statement: $ =>
-            seq('asm', repeat($._function_attribute), brace(/* TODO */)),
+            seq('asm', repeat($._function_attribute), brace($._asm_instruction_list)),
 
         //
         // Mixin Statement
@@ -2010,7 +2010,8 @@ module.exports = grammar({
          *
          */
         traits_expression: $ => seq('__traits', $.traits_keyword, $.traits_arguments),
-        traits_arguments: $ => commaSep1(choice($._expression, $.type)),
+        traits_arguments: $ =>
+            prec.left(commaSep1(choice($._expression, $.type))),
         traits_keyword: $ =>
             choice(
                 'isAbstractClass',
@@ -2123,8 +2124,7 @@ module.exports = grammar({
                 prec.left(PREC.MULTIPLY, seq($.operand, '/', $.operand)),
                 prec.left(PREC.MULTIPLY, seq($.operand, '%', $.operand)),
                 prec.left(PREC.SUBSCRIPT, seq($.operand, bracket($.operand))),
-                // TODO: tree-sitter crashes on this
-                // prec.left(PREC.UNARY, seq($._asm_type_prefix, 'ptr', $.operand)),
+                prec.left(PREC.UNARY, seq($._asm_type_prefix, 'ptr', $.operand)),
                 prec.left(PREC.UNARY, seq('offsetof', $.operand)),
                 prec.left(PREC.UNARY, seq('seg', $.operand)),
                 prec.left(PREC.UNARY, seq($._plus, $.operand)),
@@ -2136,8 +2136,7 @@ module.exports = grammar({
         opcode: $ => choice($.identifier, 'int', $.in, 'out'),
 
         _asm_type_prefix: $ =>
-            choice('near', 'var', 'word', 'dword', 'qword', $.scalar),
-
+            choice('near', 'far', 'word', 'dword', 'qword', $.scalar),
         _asm_primary: $ => choice(
             $.int_literal,
             $.float_literal,
@@ -2151,9 +2150,7 @@ module.exports = grammar({
             choice(
                 $.identifier,
                 seq($.identifier, $._dot, $._dot_identifier),
-                //seq($.scalar, $._dot, $.identifier)
-                seq('bob', $._dot, $.identifier)
-                
+                seq($.scalar, $._dot, $.identifier),
             ),
     },
 

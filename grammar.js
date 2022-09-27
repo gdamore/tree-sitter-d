@@ -1150,9 +1150,8 @@ module.exports = grammar({
             $.if_statement,
             $.while_statement,
             $.do_statement,
-            // TODO: many :-)
-            // for_statement
-            // foreach_statement
+            $.for_statement,
+            $.foreach_statement,
             $.switch_statement,
             $.final_switch_statement,
             $.continue_statement,
@@ -1161,11 +1160,12 @@ module.exports = grammar({
             $.goto_statement,
             $.with_statement,
             $.synchronized_statement,
+            // TODO: many :-)
             // try_statement
             // scope_guard_statement
             // asm_statement
             // mixin_statement
-            // foreach_range_stateement
+            $.foreach_range_statement,
             $.pragma_statement,
             // conditional_statement
             // static_foreach_statement
@@ -1214,8 +1214,62 @@ module.exports = grammar({
             paren(field('condition', $._comma_expression))
         ),
 
-        // TODO : for/foreach
+        //
+        // For Statement
+        //
+        for_statement: $ => seq(
+            seq(
+                'for',
+                paren(
+                    $.initialize,
+                    optional($.test),
+                    ';',
+                    optional($.increment)),
+                $._scope_statement)),
 
+
+        initialize: $ => choice(';', $._no_scope_non_empty_statement),
+
+        test: $ => $._comma_expression,
+
+        increment: $ => $._comma_expression,
+
+        //
+        // Foreach Statement
+        //
+
+        foreach_statement: $ =>
+            seq(
+                choice('foreach', 'foreach_reverse'),
+                paren($._foreach_type_list, ';', $._comma_expression),
+            ),
+
+        _foreach_type_list: $ => commaSep1($._foreach_type),
+
+        _foreach_type: $ =>
+            seq(
+                repeat($._foreach_type_attribute),
+                choice(
+                    seq($._basic_type, $._declarator),
+                    $.identifier,
+                    seq('alias', $.identifier))
+            ),
+
+        _foreach_type_attribute: $ => choice('enum', 'ref', 'scope', $._type_ctor),
+
+        //
+        // Foreach Range Statement
+        //
+        foreach_range_statement: $ =>
+            seq(
+                choice('foreach', 'foreach_reverse'),
+                paren($._foreach_type, $._comma_expression, '..', $._comma_expression),
+                $._scope_statement
+            ),
+
+        //
+        // Switch Statement
+        //
         switch_statement: $ =>
             seq('switch', paren(commaSep1($._expression), $._scope_statement)),
 

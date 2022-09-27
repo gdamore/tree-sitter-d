@@ -1439,15 +1439,12 @@ module.exports = grammar({
                 seq(
                     $.parameters,
                     optional($._member_function_attributes)),
-                // TODO: tree sitter somehow picks up on *before*
-                // matching the simpler form, even when it does not
-                // match successfully.
-                // seq(
-                //     $.template_parameters,
-                //     $.parameters,
-                //     optional($._member_function_attributes),
-                //     optional($.constraint),
-                // ),
+                seq(
+                    $.template_parameters,
+                    $.parameters,
+                    optional($._member_function_attributes),
+                    optional($.constraint),
+                ),
             ),
 
         //

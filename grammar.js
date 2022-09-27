@@ -95,6 +95,7 @@ module.exports = grammar({
         $._basic_type,
         $.declarator_initializer,
         $.declarator,
+        $.func_declarator_suffix,
     ],
 
     word: $ => $.identifier,
@@ -261,7 +262,7 @@ module.exports = grammar({
         // Variable Declarations
         //
         var_declarations: $ =>
-            prec.right(choice(
+            prec.left(choice(
                 seq(
                     optional($._storage_classes),
                     field('type', $._basic_type),
@@ -401,10 +402,10 @@ module.exports = grammar({
 
         _basic_type: $ => prec.left(PREC.BASIC_TYPE, choice(
             $.scalar,
-            seq('.', $._qualified_id),
-            $._qualified_id,
+            seq('.', $.qualified_identifier),
+            $.qualified_identifier,
             $.typeof,
-            seq($.typeof, '.', $._qualified_id),
+            seq($.typeof, '.', $.qualified_identifier),
             seq($._type_ctor, paren($.type)),
             $._vector,
             // TODO: $.traits_expression,
@@ -451,14 +452,14 @@ module.exports = grammar({
                 seq('function', $.parameters, repeat($._function_attribute)),
             )),
 
-        _qualified_id: $ =>
+        qualified_identifier: $ =>
             prec.left(PREC.QUALIFIED_ID, choice(
                 $.identifier,
-                seq($.identifier, '.', $._qualified_id),
+                seq($.identifier, '.', $.qualified_identifier),
                 $.template_instance,
-                seq($.identifier, '.', $._qualified_id),
-                prec(2, seq($.identifier, bracket($._expression))),
-                prec(1, seq($.identifier, bracket($._expression), '.', $._qualified_id)),
+                seq($.identifier, '.', $.qualified_identifier),
+                seq($.identifier, bracket($._expression),
+                    optional(seq('.', $.qualified_identifier))),
             )),
 
         //
@@ -485,7 +486,7 @@ module.exports = grammar({
             prec.left(choice(
                 'private',
                 'package',
-                seq('package', paren($._qualified_id)),
+                seq('package', paren($.qualified_identifier)),
                 'protected',
                 'public',
                 'export',
@@ -554,7 +555,7 @@ module.exports = grammar({
                     "Windows",
                     "System",
                     "Objective-C",
-                    seq("C++", ',', $._qualified_id),
+                    seq("C++", ',', $.qualified_identifier),
                     seq("C++", ',', $._namespace_list),
                     seq("C++", ',', 'class'),
                     seq("C++", ',', 'struct'),
@@ -1418,7 +1419,7 @@ module.exports = grammar({
                 seq(
                     $._storage_classes,
                     field('name', $.identifier),
-                    $._func_declarator_suffix,
+                    $.func_declarator_suffix,
                     $.function_body,
                 )
             ),
@@ -1426,9 +1427,9 @@ module.exports = grammar({
         _func_declarator: $ =>
             seq(repeat($._type_suffix),
                 field('name', $.identifier),
-                $._func_declarator_suffix),
+                $.func_declarator_suffix),
 
-        _func_declarator_suffix: $ =>
+        func_declarator_suffix: $ =>
             choice(
                 seq(
                     $.parameters,
@@ -1610,16 +1611,16 @@ module.exports = grammar({
             $.special_keyword,
         ),
 
-        _template_parameter: $ => choice(
+        template_parameter: $ => choice(
             $._template_type_parameter,
             $._template_value_parameter,
             $._template_alias_parameter,
             $._template_sequence_parameter,
         ),
 
-        template_parameters: $ => paren($._template_parameter_list),
+        template_parameters: $ => prec(PREC.TEMPLATE, paren($._template_parameter_list)),
 
-        _template_parameter_list: $ => commaSep1Comma($._template_parameter),
+        _template_parameter_list: $ => commaSep1Comma($.template_parameter),
 
         _template_type_parameter: $ =>
             seq(
@@ -1705,13 +1706,13 @@ module.exports = grammar({
         // Constructor Template
         //
         constructor_template: $ =>
-            seq(
+            prec(PREC.TEMPLATE, seq(
                 'this',
                 $.template_parameters,
                 $.parameters,
                 optional($._member_function_attributes),
                 optional($.constraint),
-                choice($.function_body, ';')
+                choice($.function_body, ';'))
             ),
 
         //
@@ -1965,10 +1966,8 @@ module.exports = grammar({
         [$._storage_class, $._attribute],
         [$._initializer, $._kv_pair],
         [$._symbol_tail, $._conditional_expression],
-        //['final', $._attribute,],
         [$._variadic_arguments_attribute, $._parameter_storage_class],
         [$._shortened_function_body, $._function_contract],
-        [$._missing_function_body, $.constructor_template],
         [$.block_statement, $._struct_initializer],
     ],
 })

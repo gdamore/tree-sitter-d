@@ -1,0 +1,9 @@
+==================
+Division
+==================
+int x  = 5 / 3;
+---
+(source_file (module (var_declarations
+        (scalar)
+             (var_declarator (identifier))
+                (binary_expression (int_literal) (int_literal)))))

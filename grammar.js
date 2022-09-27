@@ -319,7 +319,7 @@ module.exports = grammar({
             $.alias_this,
             $.debug_specification,
             $.version_specification,
-            // TODO: $._template_decl,
+            $.template_declaration,
             $.mixin_declaration,
             $._empty_decl,
         ),
@@ -1042,7 +1042,7 @@ module.exports = grammar({
                 seq('new', $.type),
                 seq('new', $.type, bracket($._expression)),
                 seq('new', $.type, paren(optional($._arg_list))),
-                // TODO: newAnonClassExpression
+                $.new_anon_class_expression,
             )),
 
         typeid_expression: $ => choice(
@@ -1204,22 +1204,21 @@ module.exports = grammar({
             $.synchronized_statement,
             $.try_statement,
             $.scope_guard_statement,
-            // TODO: many :-)
             $.asm_statement,
-            // mixin_statement
             $.foreach_range_statement,
             $.pragma_statement,
             $.conditional_statement,
-            // static_foreach_statement
+            // TODO: static_foreach_statement
             $.template_mixin,
             $.static_assert,
             $.import_declaration,
         ),
 
+        // mixin_statement is already covered by expression_statement
+
         _labeled_statement: $ => prec.left(seq('$identifier', ':', optional($._statement))),
 
         block_statement: $ => brace(repeat($._statement)),
-        _block_statement: $ => $.block_statement,
 
         _expression_statement: $ => seq($._comma_expression, ';'),
 
@@ -1397,6 +1396,12 @@ module.exports = grammar({
         asm_statement: $ =>
             seq('asm', repeat($._function_attribute), brace(/* TODO */)),
 
+        //
+        // Mixin Statement
+        //
+        mixin_statement: $ =>
+            seq('mixin', paren($._arg_list), ';'),
+
         /**************************************************
          *
          * 3.9 STRUCTS AND UNIONS
@@ -1448,8 +1453,8 @@ module.exports = grammar({
         //
         invariant: $ =>
             choice(
-                seq('invariant', paren(), $._block_statement),
-                seq('invariant', $._block_statement),
+                seq('invariant', paren(), $.block_statement),
+                seq('invariant', $.block_statement),
                 seq('invariant', paren($._assert_arguments), ';')
             ),
 
@@ -1505,6 +1510,19 @@ module.exports = grammar({
         //
         alias_this: $ => seq('alias', $.identifier, 'this', ';'),
 
+        //
+        // NewAnonClassExpression
+        //
+        new_anon_class_expression: $ =>
+            seq('new',
+                'class',
+                paren(optional($._arg_list)),
+                optional($._anon_base_class_list),
+                $._aggregate_body),
+
+        _anon_base_class_list: $ =>
+            seq($._super_class_or_interface, optional(seq(',', $._interfaces))),
+
         /**************************************************
          *
          * 3.11 INTERFACES
@@ -1515,7 +1533,7 @@ module.exports = grammar({
             choice(
                 seq('interface', $.identifier, ';'),
                 seq('interface', optional($._base_interface_list), $._aggregate_body),
-                // TODO: interface template Declaration
+                $.interface_template_declaration,
             ),
 
         _base_interface_list: $ => seq(':', $._interfaces),
@@ -1693,7 +1711,7 @@ module.exports = grammar({
             ),
 
         _specified_function_body: $ =>
-            seq(repeat($._function_contract), optional('do'), $._block_statement),
+            seq(repeat($._function_contract), optional('do'), $.block_statement),
 
         _shortened_function_body: $ =>
             seq(optional($._in_out_contract_expressions), '=>', $._expression, ';'),
@@ -1723,10 +1741,10 @@ module.exports = grammar({
             seq('out', paren(optional($.identifier), ':', $._assert_arguments)),
 
         in_statement: $ =>
-            seq($.in, $._block_statement),
+            seq($.in, $.block_statement),
 
         out_statement: $ =>
-            seq('out', optional(paren($.identifier)), $._block_statement),
+            seq('out', optional(paren($.identifier)), $.block_statement),
 
         /**************************************************
          *
@@ -1734,6 +1752,19 @@ module.exports = grammar({
          *
          */
 
+        //
+        // Template Declaration
+        //
+        template_declaration: $ =>
+            seq('template',
+            $.identifier,
+            $.template_parameters,
+            optional($.constraint),
+            brace(repeat($._decldef))),
+
+        //
+        // Template Instance
+        //
         template_instance: $ =>
             prec.left(PREC.TEMPLATE, seq($.identifier, $.template_arguments)),
 

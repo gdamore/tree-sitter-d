@@ -36,6 +36,7 @@ const PREC = {
     CONSTRUCTOR: 22, // also destructor
     POSTBLIT: 23,
     BASIC_TYPE: 24, // type declarations
+    FUNC_LITERAL: 24, // function literal has a  block statement
 
     // These are keyword classes.  It helps us to discriminate cases where
     // a keyword can be associated with one group or another.  In some cases
@@ -1108,25 +1109,26 @@ module.exports = grammar({
         //
         // Function Literal
         //
-        function_literal: $ => choice(
-            seq(
-                'function',
-                optional($._ref_auto_ref),
-                optional($.type),
-                optional($._parameter_with_attributes),
-                $._func_literal_body2),
-            seq(
-                'delegate',
-                optional($._ref_auto_ref),
-                optional($.type),
-                optional($._parameter_with_member_attributes),
-                $._func_literal_body2),
-            seq(optional($._ref_auto_ref),
-                $._parameter_with_member_attributes,
-                $._func_literal_body2),
-            // TODO: $.block_statement,
-            seq($.identifier, '=>', $._expression),
-        ),
+        function_literal: $ =>
+            prec(PREC.FUNC_LITERAL, choice(
+                seq(
+                    'function',
+                    optional($._ref_auto_ref),
+                    optional($.type),
+                    optional($._parameter_with_attributes),
+                    $._func_literal_body2),
+                seq(
+                    'delegate',
+                    optional($._ref_auto_ref),
+                    optional($.type),
+                    optional($._parameter_with_member_attributes),
+                    $._func_literal_body2),
+                seq(optional($._ref_auto_ref),
+                    $._parameter_with_member_attributes,
+                    $._func_literal_body2),
+                $.block_statement,
+                seq($.identifier, '=>', $._expression),
+            )),
 
         _parameter_with_attributes: $ =>
             seq($.parameters, repeat($._function_attribute)),

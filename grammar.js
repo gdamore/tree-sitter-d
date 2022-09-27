@@ -309,7 +309,7 @@ module.exports = grammar({
             $._attr_specifier,
             $._declaration,
             $.constructor,
-            // TODO: $._destructor,
+            $.destructor,
             // TODO: $._postblit,
             // TODO: $.invariant,
             $.unittest,
@@ -1440,14 +1440,21 @@ module.exports = grammar({
         //
         constructor: $ =>
             prec(PREC.CONSTRUCTOR, choice(
-                seq(
-                    optional('shared'),
-                    optional('static'),
-                    'this',
-                    $.parameters,
+                seq('this', $.parameters,
+                    optional($._member_function_attributes), $.function_body),
+                seq(optional('shared'), 'static', 'this', paren(),
                     optional($._member_function_attributes),
-                    $.function_body),
+                    choice($.function_body, ';')),
                 $.constructor_template,
+            )),
+
+        destructor: $ =>
+            prec(PREC.CONSTRUCTOR, choice(
+                seq('~', 'this', paren(),
+                    optional($._member_function_attributes), $.function_body),
+                seq(optional('shared'), 'static', '~', 'this', paren(),
+                    optional($._member_function_attribute),
+                    choice($.function_body, ';')),
             )),
 
         //

@@ -29,7 +29,6 @@ enum TokenType {
 	L_DQSTRING, // "string" may include escapes
 	L_BQSTRING, // `string` (no escapes permitted)
 	L_RQSTRING, // r"string" (no escapes permitted)
-	N_TOKENS,   // must be last, not a real token
 };
 
 static bool

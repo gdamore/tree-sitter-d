@@ -317,14 +317,15 @@ module.exports = grammar({
             $.alias_this,
             $.debug_specification,
             $.version_specification,
-            // static assert included in declaration
-            // conditional_declaration in declaration
             // TODO: $._template_decl,
-            // TODO: $._template_mixin_decl,
-            // TODO: $._template_mixin,
             $.mixin_declaration,
             $._empty_decl,
         ),
+        // a few thisn are already in declaration, so not included in _decldef:
+        // - static_assert,
+        // - conditional_declaration
+        // - template_mixin_declaration
+        // - template_mixin
 
         _empty_decl: $ => ';',
 
@@ -545,7 +546,7 @@ module.exports = grammar({
             seq('alias',
                 choice(
                     seq(repeat($._storage_class), $._basic_type, $._declarators),
-                    // TODO: seq(repeat($._storage_class), $._basic_type, $._func_declarator,),
+                    seq(repeat($._storage_class), $._basic_type, $._func_declarator),
                     commaSep1($.alias_assignment)),
                 ';'),
 
@@ -1592,8 +1593,6 @@ module.exports = grammar({
                 //     optional($.constraint),
                 // ),
             ),
-
-        template_parameters: $ => $.template_parameters,
 
         //
         // Parameters

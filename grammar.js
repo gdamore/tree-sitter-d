@@ -566,9 +566,11 @@ module.exports = grammar({
          *
          */
 
-        type: $ => prec.left(seq(repeat($._type_ctor), $._basic_type, repeat($._type_suffix))),
+        type: $ =>
+            prec.left(seq(repeat($._type_ctor), $._basic_type, repeat($._type_suffix))),
 
-        _type_ctor: $ => prec(PREC.TYPE_CTOR, choice('const', 'immutable', 'inout', 'shared')),
+        _type_ctor: $ =>
+            prec(PREC.TYPE_CTOR, choice('const', 'immutable', 'inout', 'shared')),
 
         _basic_type: $ => prec.left(PREC.BASIC_TYPE, choice(
             $.scalar,
@@ -1160,8 +1162,8 @@ module.exports = grammar({
             $.goto_statement,
             $.with_statement,
             $.synchronized_statement,
+            $.try_statement,
             // TODO: many :-)
-            // try_statement
             // scope_guard_statement
             // asm_statement
             // mixin_statement
@@ -1302,6 +1304,22 @@ module.exports = grammar({
             seq('synchronized', $._scope_statement),
             seq('synchronized', paren($._comma_expression), $._scope_statement)
         ),
+
+        //
+        // Try Statement
+        //
+        try_statement: $ =>
+            prec.right(
+                seq('try', $._scope_statement, repeat($.catch), optional($.finally))),
+
+        catch: $ =>
+            seq(
+                'catch',
+                paren($._basic_type, optional($.identifier)),
+                $._no_scope_non_empty_statement),
+
+        finally: $ => seq('finally', $._no_scope_non_empty_statement),
+
 
         /**************************************************
          *

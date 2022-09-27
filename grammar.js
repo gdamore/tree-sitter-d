@@ -47,6 +47,7 @@ const PREC = {
     TYPE_CTOR: 39,
     VARIADIC_ATTR: 40,
     MODULE_ATTRIBUTE: 41,
+    REF_AUTO: 42,
 };
 
 module.exports = grammar({
@@ -1112,20 +1113,28 @@ module.exports = grammar({
                 'function',
                 optional($._ref_auto_ref),
                 optional($.type),
-                // TODO: optional($._parameter_with_attributes),
+                optional($._parameter_with_attributes),
                 $._func_literal_body2),
             seq(
                 'delegate',
                 optional($._ref_auto_ref),
                 optional($.type),
-                // TODO: optional($._parameter_with_member_attributes),
+                optional($._parameter_with_member_attributes),
                 $._func_literal_body2),
-            // TODO: seq(optional(_ref_auto_ref), $_param_with_member_attrs, $._func_literal_body2
+            seq(optional($._ref_auto_ref),
+                $._parameter_with_member_attributes,
+                $._func_literal_body2),
             // TODO: $.block_statement,
             seq($.identifier, '=>', $._expression),
         ),
 
-        _ref_auto_ref: $ => seq(optional('auto'), 'ref'),
+        _parameter_with_attributes: $ =>
+            seq($.parameters, repeat($._function_attribute)),
+
+        _parameter_with_member_attributes: $ =>
+            seq($.parameters, optional($._member_function_attributes)),
+
+        _ref_auto_ref: $ => prec(PREC.REF_AUTO, seq(optional('auto'), 'ref')),
 
         _func_literal_body2: $ => choice(
             seq('=>', $._expression),
@@ -1733,7 +1742,7 @@ module.exports = grammar({
 
         template_argument: $ => choice($.type, $._symbol, $._expression),
 
-        _template_argument_list: $=> commaSep1($.template_argument),
+        _template_argument_list: $ => commaSep1($.template_argument),
 
         _symbol: $ => seq(optional($.dot), $._symbol_tail),
 

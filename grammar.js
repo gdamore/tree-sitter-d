@@ -301,7 +301,7 @@ module.exports = grammar({
         ),
 
         // declarator: $ => prec.left(seq(repeat($._type_suffix), $.identifier)),
-        declarator: $=> $.var_declarator,
+        declarator: $ => $.var_declarator,
 
         //
         // Storage Classes
@@ -699,8 +699,8 @@ module.exports = grammar({
                     '=',
                     '+=', '-=', '*=', '/=', '%=', '&=', '|=',
                     '^=', '~=', '<<=', '>>=', '>>>=', '^^=',
-                ),
-                field('right', $._expression)))),
+                )),
+            field('right', $._expression))),
 
         pointer_expression: $ => prec.left(PREC.CAST, seq(
             field('operator', choice('*', '&')),

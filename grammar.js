@@ -413,6 +413,7 @@ module.exports = grammar({
                 $.struct_declaration,
                 $.union_declaration,
                 $.enum_declaration,
+                $.template_mixin_declaration,
             ),
 
         // these already storage classes, so to prevent conflicts
@@ -436,6 +437,7 @@ module.exports = grammar({
                 $.conditional_declaration,
                 $.import_declaration,
                 $.static_assert,
+                $.template_mixin,
                 // TODO: static_foreach_declaration,
             ),
 
@@ -1197,7 +1199,7 @@ module.exports = grammar({
             $.pragma_statement,
             $.conditional_statement,
             // static_foreach_statement
-            // template_mixin
+            $.template_mixin,
             $.static_assert,
             $.import_declaration,
         ),
@@ -1723,12 +1725,16 @@ module.exports = grammar({
          */
 
         template_instance: $ =>
-            prec.left(PREC.TEMPLATE, choice(
-                seq($.identifier, '!', paren(optional($._template_argument))),
-                seq($.identifier, '!', $._template_single_arg)
-            )),
+            prec.left(PREC.TEMPLATE, seq($.identifier, $.template_arguments)),
 
-        _template_argument: $ => choice($.type, $._symbol, $._expression),
+        template_arguments: $ =>
+            choice(
+                seq('!', paren(optional($._template_argument_list))),
+                seq('!', $._template_single_arg)),
+
+        template_argument: $ => choice($.type, $._symbol, $._expression),
+
+        _template_argument_list: $=> commaSep1($.template_argument),
 
         _symbol: $ => seq(optional($.dot), $._symbol_tail),
 
@@ -1867,7 +1873,31 @@ module.exports = grammar({
          *
          */
 
-        // TODO:
+        template_mixin_declaration: $ =>
+            seq('mixin', 'template',
+                $.identifier,
+                $.template_parameters,
+                optional($.constraint),
+                brace(repeat1($._decldef))),
+
+        template_mixin: $ =>
+            prec.left(seq('mixin',
+                $._mixin_template_name,
+                optional($.template_arguments),
+                optional($.identifier))),
+
+        _mixin_template_name: $ =>
+            choice(
+                seq($._dot, $._mixin_qualified_identifier),
+                $._mixin_qualified_identifier,
+                seq($.typeof, $.dot, $._mixin_qualified_identifier)),
+
+        _mixin_qualified_identifier: $ =>
+            prec.left(choice(
+                $.identifier,
+                seq($.identifier, $._dot, $._mixin_qualified_identifier),
+                seq($.template_instance, $._dot, $._mixin_qualified_identifier),
+            )),
 
         /**************************************************
          *

@@ -237,7 +237,7 @@ module.exports = grammar({
         _declaration_have_storage_class: $ =>
             choice(
                 $.func_declaration,
-                $.auto_declaration,
+                //$.auto_declaration,
                 $.var_declarations,
                 $.alias_declaration, // alias assignments is special
             ),
@@ -268,6 +268,7 @@ module.exports = grammar({
                     field('type', $._basic_type),
                     $._declarators,
                     ';'),
+                $.auto_declaration,
             )),
 
         _declarators: $ => choice(
@@ -567,7 +568,7 @@ module.exports = grammar({
             prec(1, choice($._decldef, brace(repeat($._decldef)))),
 
         _arg_list: $ =>
-            prec.left(commaSep1Comma($._expression)),
+            prec.left(PREC.CALL, commaSep1Comma($._expression)),
 
         //
         // 3.6 PRAGMAS
@@ -660,6 +661,7 @@ module.exports = grammar({
             $.mixin_expression,
             $.new_expression,
             $.typeid_expression,
+            $.call_expression,
         )),
 
         ternary_expression: $ => prec.right(PREC.CONDITIONAL, seq(
@@ -673,6 +675,13 @@ module.exports = grammar({
         field_expression: $ => prec.left(PREC.POSTFIX, seq(
             field('argument', $._expression), '.',
             field('member', $.identifier)
+        )),
+
+        call_expression: $ => prec.left(PREC.CALL, seq(
+            field('function', $._expression),
+            '(',
+            field('arguments', optional($._arg_list)),
+            ')'
         )),
 
         // also covers slicing (we renamed from slice,
@@ -1134,7 +1143,7 @@ module.exports = grammar({
         //
 
         switch_statement: $ =>
-            seq('switch', paren(commaSep1($._expression), $._scope_statement)),
+            seq('switch', paren($._comma_expression), $._scope_statement),
 
         case_statement: $ =>
             prec.left(

@@ -1071,7 +1071,8 @@ match_number(TSLexer *lexer, const bool *valid)
 				result = true;
 			}
 			c = lexer->lookahead;
-			if (valid[S_ELLIPSES] && c == '.') {
+			if (valid[S_ELLIPSES] && c == '.') { 
+				lexer->advance(lexer, false);
 				lexer->mark_end(lexer);
 				lexer->result_symbol = S_ELLIPSES;
 				result               = true;

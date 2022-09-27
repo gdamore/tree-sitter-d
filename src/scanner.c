@@ -1057,21 +1057,20 @@ match_number(TSLexer *lexer, const bool *valid)
 			return (false);
 		}
 		lexer->advance(lexer, false);
-		c = lexer->lookahead;
 		if (valid[S_DOT]) {
 			lexer->result_symbol = S_DOT;
 			lexer->mark_end(lexer);
 			result = true;
 		}
+		c = lexer->lookahead;
 		if (c == '.') { // either .., or ...
 			lexer->advance(lexer, false);
-			c = lexer->lookahead;
 			if (valid[S_RANGE]) {
 				lexer->result_symbol = S_RANGE; // ..
 				lexer->mark_end(lexer);
 				result = true;
 			}
-			lexer->advance(lexer, false);
+			c = lexer->lookahead;
 			if (valid[S_ELLIPSES] && c == '.') {
 				lexer->mark_end(lexer);
 				lexer->result_symbol = S_ELLIPSES;

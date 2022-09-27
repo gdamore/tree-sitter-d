@@ -441,7 +441,7 @@ module.exports = grammar({
                 $.import_declaration,
                 $.static_assert,
                 $.template_mixin,
-                // TODO: static_foreach_declaration,
+                $.static_foreach_declaration,
             ),
 
         // _aggregate_declaration is inlined above
@@ -1208,7 +1208,7 @@ module.exports = grammar({
             $.foreach_range_statement,
             $.pragma_statement,
             $.conditional_statement,
-            // TODO: static_foreach_statement
+            $.static_foreach_statement,
             $.template_mixin,
             $.static_assert,
             $.import_declaration,
@@ -1282,10 +1282,7 @@ module.exports = grammar({
         //
 
         foreach_statement: $ =>
-            seq(
-                choice('foreach', 'foreach_reverse'),
-                paren($._foreach_type_list, ';', $._comma_expression),
-            ),
+            seq($._aggregate_foreach, $._no_scope_non_empty_statement),
 
         _foreach_type_list: $ => commaSep1($._foreach_type),
 
@@ -1298,16 +1295,23 @@ module.exports = grammar({
                     seq('alias', $.identifier))
             ),
 
+        _aggregate_foreach: $ =>
+            seq(
+                choice('foreach', 'foreach_reverse'),
+                paren($._foreach_type_list, ';', $._comma_expression)),
+
+
         _foreach_type_attribute: $ => choice('enum', 'ref', 'scope', $._type_ctor),
 
         //
         // Foreach Range Statement
         //
-        foreach_range_statement: $ =>
+        foreach_range_statement: $ => seq($._range_foreach, $._scope_statement),
+
+        _range_foreach: $ =>
             seq(
                 choice('foreach', 'foreach_reverse'),
                 paren($._foreach_type, $._comma_expression, '..', $._comma_expression),
-                $._scope_statement
             ),
 
         //
@@ -1757,10 +1761,10 @@ module.exports = grammar({
         //
         template_declaration: $ =>
             seq('template',
-            $.identifier,
-            $.template_parameters,
-            optional($.constraint),
-            brace(repeat($._decldef))),
+                $.identifier,
+                $.template_parameters,
+                optional($.constraint),
+                brace(repeat($._decldef))),
 
         //
         // Template Instance
@@ -1985,9 +1989,17 @@ module.exports = grammar({
         static_if_condition: $ =>
             seq('static', 'if', paren($._expression)),
 
-        // TODO: staticforeach
-        // TODO: staticforeachdirection
-        // TODO: staticforeachstmt
+        _static_foreach: $ => choice(
+            seq('static', $._aggregate_foreach),
+            seq('static', $._range_foreach)),
+
+        static_foreach_declaration: $ =>
+            prec.left(choice(
+                seq($._static_foreach, $._decl_block),
+                seq($._static_foreach, ':', repeat($._decldef)))),
+
+        static_foreach_statement: $ =>
+            seq($._static_foreach, $._no_scope_non_empty_statement),
 
         static_assert: $ =>
             seq('static', 'assert', paren($._assert_arguments), ';'),
@@ -1997,6 +2009,73 @@ module.exports = grammar({
          * 3.17 TRAITS
          *
          */
+        traits_expression: $ => seq('__traits', $.traits_keyword, $.traits_arguments),
+        traits_arguments: $ => commaSep1(choice($._expression, $.type)),
+        traits_keyword: $ =>
+            choice(
+                'isAbstractClass',
+                'isArithmetic',
+                'isAssociativeArray',
+                'isFinalClass',
+                'isPOD',
+                'isNested',
+                'isFuture',
+                'isDeprecated',
+                'isFloating',
+                'isIntegral',
+                'isScalar',
+                'isStaticArray',
+                'isUnsigned',
+                'isDisabled',
+                'isVirtualFunction',
+                'isVirtualMethod',
+                'isAbstractFunction',
+                'isFinalFunction',
+                'isStaticFunction',
+                'isOverrideFunction',
+                'isTemplate',
+                'isRef',
+                'isOut',
+                'isLazy',
+                'isReturnOnStack',
+                'isCopyable',
+                'isZeroInit',
+                'isModule',
+                'isPackage',
+                'hasMember',
+                'hasCopyConstructor',
+                'hasPostblit',
+                'identifier',
+                'getAliasThis',
+                'getAttributes',
+                'getFunctionAttributes',
+                'getFunctionVariadicStyle',
+                'getLinkage',
+                'getLocation',
+                'getMember',
+                'getOverloads',
+                'getParameterStorageClasses',
+                'getPointerBitmap',
+                'getCppNamespaces',
+                'getVisibility',
+                'getProtection',
+                'getTargetInfo',
+                'getVirtualFunctions',
+                'getVirtualMethods',
+                'getUnitTests',
+                'parent',
+                'child',
+                'classInstanceSize',
+                'classInstanceAlignment',
+                'getVirtualIndex',
+                'allMembers',
+                'derivedMembers',
+                'isSame',
+                'compiles',
+                'toType',
+                'initSymbol',
+                'parameters',
+            ),
 
         /**************************************************
          *
@@ -2007,10 +2086,75 @@ module.exports = grammar({
 
         /**************************************************
          *
-         * 3.19 D X86 INLINE ASSEMBLER
+         * 3.19 D X86 INLINE ASSEMBLER - this grammar does not validate fully
          *
          */
+        _asm_instruction_list: $ =>
+            seq($.asm_instruction, ';', optional($._asm_instruction_list)),
 
+        asm_instruction: $ =>
+            choice(
+                seq($.identifier, ':', $.asm_instruction), // label
+                seq('align', choice($.identifier, $.int_literal)),
+                'even',
+                'naked',
+                seq(choice('db', 'ds', 'di', 'dl', 'df', 'dd', 'de'), commaSep($.operand)),
+                seq(choice('db', 'ds', 'di', 'dl', 'dw', 'dq'), $.string_literal),
+                seq($.opcode, commaSep($.operand))),
+
+        operand: $ =>
+            choice(
+                prec.left(PREC.LOGICAL_OR, seq($.operand, '||', $.operand)),
+                prec.left(PREC.LOGICAL_AND, seq($.operand, '&&', $.operand)),
+                prec.left(PREC.INCLUSIVE_OR, seq($.operand, '|', $.operand)),
+                prec.left(PREC.INCLUSIVE_OR, seq($.operand, '|', $.operand)),
+                prec.left(PREC.EXCLUSIVE_OR, seq($.operand, '^', $.operand)),
+                prec.left(PREC.EQUAL, seq($.operand, $.equalequal, $.operand)),
+                prec.left(PREC.RELATIONAL, seq($.operand, '<', $.operand)),
+                prec.left(PREC.RELATIONAL, seq($.operand, '<=', $.operand)),
+                prec.left(PREC.RELATIONAL, seq($.operand, '>', $.operand)),
+                prec.left(PREC.RELATIONAL, seq($.operand, '>=', $.operand)),
+                prec.left(PREC.SHIFT, seq($.operand, '<<', $.operand)),
+                prec.left(PREC.SHIFT, seq($.operand, '>>', $.operand)),
+                prec.left(PREC.SHIFT, seq($.operand, '>>>', $.operand)),
+                prec.left(PREC.ADD, seq($.operand, $._plus, $.operand)),
+                prec.left(PREC.ADD, seq($.operand, '-', $.operand)),
+                prec.left(PREC.MULTIPLY, seq($.operand, '*', $.operand)),
+                prec.left(PREC.MULTIPLY, seq($.operand, '/', $.operand)),
+                prec.left(PREC.MULTIPLY, seq($.operand, '%', $.operand)),
+                prec.left(PREC.SUBSCRIPT, seq($.operand, bracket($.operand))),
+                // TODO: tree-sitter crashes on this
+                // prec.left(PREC.UNARY, seq($._asm_type_prefix, 'ptr', $.operand)),
+                prec.left(PREC.UNARY, seq('offsetof', $.operand)),
+                prec.left(PREC.UNARY, seq('seg', $.operand)),
+                prec.left(PREC.UNARY, seq($._plus, $.operand)),
+                prec.left(PREC.UNARY, seq('-', $.operand)),
+                prec.left(PREC.UNARY, seq('!', $.operand)),
+                prec.left(PREC.UNARY, seq('~', $.operand)),
+                $._asm_primary),
+
+        opcode: $ => choice($.identifier, 'int', $.in, 'out'),
+
+        _asm_type_prefix: $ =>
+            choice('near', 'var', 'word', 'dword', 'qword', $.scalar),
+
+        _asm_primary: $ => choice(
+            $.int_literal,
+            $.float_literal,
+            $._dot_identifier, // also stands in for registers for now
+            '__LOCAL_SIZE',
+            '$',
+            'this',
+        ),
+
+        _dot_identifier: $ =>
+            choice(
+                $.identifier,
+                seq($.identifier, $._dot, $._dot_identifier),
+                //seq($.scalar, $._dot, $.identifier)
+                seq('bob', $._dot, $.identifier)
+                
+            ),
     },
 
     conflicts: $ => [

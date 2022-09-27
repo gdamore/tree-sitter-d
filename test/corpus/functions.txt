@@ -33,18 +33,10 @@ int f(int c) { return c; }
             (scalar)
             (identifier)
             (parameters
-                (parameter
-                    (scalar)
-                    (identifier)
-                )
-            )
+                (parameter (scalar) (var_declarator (identifier))))
             (function_body
                 (block_statement
-                    (return_statement
-                        (identifier)
-                    )
-                )
-            )
+                    (return_statement (identifier))))
         )
     )
 )
@@ -63,7 +55,7 @@ int f(int c, ...) { return c; }
             (parameters
                 (parameter
                     (scalar)
-                    (identifier)
+                    (var_declarator (identifier))
                 )
                 (ellipses)
             )
@@ -119,10 +111,10 @@ int f(int...) { return c; }
 )
 
 ==================
-Pure Function
+Member Function Attributes
 ==================
 
-int f(int a, int b) @safe pure { return a+b; }
+int f(int a, int b) @safe pure @myattr { return a+b; }
 ---
 (source_file
     (module
@@ -130,14 +122,18 @@ int f(int a, int b) @safe pure { return a+b; }
             (scalar)
             (identifier)
             (parameters
-                (parameter (scalar) (identifier))
-                (parameter (scalar) (identifier))
+                (parameter (scalar) (var_declarator (identifier)))
+                (parameter (scalar) (var_declarator (identifier)))
             )
-            (user_defined_attribute (identifier))
+            (member_function_attribute
+                (at_attribute))
+            (member_function_attribute)
+            (member_function_attribute
+                (at_attribute (user_defined_attribute (identifier))))
             (function_body
                 (block_statement
                     (return_statement
-                        (add_expression (identifier) (identifier)))
+                        (binary_expression (identifier) (identifier)))
                 )
             )
         )

@@ -8,6 +8,7 @@
 const PREC = {
     QUALIFIED_ID: -20, //  we want pretty much everything else to be higher
     PAREN: -10,
+    TEMPLATE: -3,
     ASSIGNMENT: -1,
     CONDITIONAL: -2,
     DEFAULT: 0,
@@ -17,9 +18,7 @@ const PREC = {
     EXCLUSIVE_OR: 4,
     BITWISE_AND: 5,
     EQUAL: 6,
-    IDENTITY: 7,
     RELATIONAL: 8,
-    MEMBERSHIP: 9, // in , !in
     SHIFT: 10,
     ADD: 11,
     CONCAT: 12,
@@ -31,7 +30,8 @@ const PREC = {
     POSTFIX: 15,
     CALL: 16,
     SUBSCRIPT: 16,
-    TEMPLATE: 17,
+    IDENTITY: 18, // this has to be pretty high to avoid colliding with template instance
+    MEMBERSHIP: 18, // in , !in
     DEPRECATED: 21, // deprecated attribute,  paren following always is part of
     CONSTRUCTOR: 22, // also destructor
     POSTBLIT: 23,
@@ -90,7 +90,7 @@ module.exports = grammar({
         $.exclusive_or_expression,
         $.bitwise_and_operation,
         $.membership_operation,
-        $.identity_operation,
+        $.identity_expression,
         $.power_expression,
         $._basic_type,
         $.declarator_initializer,
@@ -786,7 +786,7 @@ module.exports = grammar({
             field('right', $._expression)
         )),
 
-        identity_operation: $ => prec.right(PREC.MEMBERSHIP, seq(
+        identity_expression: $ => prec.right(PREC.MEMBERSHIP, seq(
             field('left', $._expression),
             field('operation', seq(optional('!'), 'is')),
             field('right', $._expression)
@@ -811,7 +811,7 @@ module.exports = grammar({
             $.exclusive_or_expression,
             $.bitwise_and_operation,
             $.membership_operation,
-            $.identity_operation,
+            $.identity_expression,
             $.power_expression,
         ),
 

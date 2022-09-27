@@ -596,7 +596,7 @@ module.exports = grammar({
             seq($.typeof, $.dot, $._qualified_id),
             seq($._type_ctor, paren($.type)),
             $._vector,
-            $.traits_expression,
+            // TODO: $.traits_expression,
             $.mixin_expression,
         )),
 
@@ -821,7 +821,7 @@ module.exports = grammar({
         // needed for a few other places
         _conditional_expression: $ => prec.left(choice(
             $.ternary_expression,
-            $.binary_expression,
+            $._binary_expression,
             $.unary_expression,
             $.prefix_expression,
             $.postfix_expression,
@@ -911,7 +911,7 @@ module.exports = grammar({
 
         add_expression: $ => prec.right(PREC.ADD, seq(
             field('left', $._expression),
-            field('operation', choice($.plus, $.minus)),
+            field('operation', choice($._plus, $.minus)),
             field('right', $._expression)
         )),
 
@@ -975,7 +975,7 @@ module.exports = grammar({
             field('right', $._expression)
         )),
 
-        binary_expression: $ => choice(
+        _binary_expression: $ => choice(
             $.relational_expression,
             $.equality_expression,
             $.shift_expression,
@@ -1003,7 +1003,7 @@ module.exports = grammar({
         )),
 
         unary_expression: $ => prec.left(PREC.UNARY, seq(
-            field('operator', choice('~', $.minus, $.plus, '!')),
+            field('operator', choice('~', $._minus, $._plus, '!')),
             field('argument', $._expression),
         )),
 
@@ -1204,7 +1204,7 @@ module.exports = grammar({
             $.synchronized_statement,
             $.try_statement,
             $.scope_guard_statement,
-            $.asm_statement,
+            // $.asm_statement,
             $.foreach_range_statement,
             $.pragma_statement,
             $.conditional_statement,
@@ -1633,30 +1633,20 @@ module.exports = grammar({
         parameters: $ => paren(optional($._parameter_list)),
 
         _parameter_list: $ => prec.left(choice(
-            commaSep1Comma($.parameter),
-            seq(commaSep1($.parameter), repeat($._variadic_arguments_attribute), '...'),
-            seq(repeat($._variadic_arguments_attribute), '...'),
+            $.parameter,
+            seq($.parameter, ','),
+            seq($.parameter, ',', $._parameter_list),
+            seq(repeat($._variadic_arguments_attribute), alias('...',$.ellipses)),
         )),
 
-        parameter_ellipses: $ => // not used right now
-            prec.left(seq(
-                optional($._parameter_attributes),
-                choice(
-                    seq($._basic_type, $._declarator),
-                    seq($._basic_type, $._declarator, '...'),
-                    seq($._basic_type, $._declarator, $._equal, $._expression),
-                    seq($.type),
-                    seq($.type, '...'),
-                    seq($.type, $._equal, $._expression))
-            )),
-
+        ellipses: $=> '...',
 
         parameter: $ =>
             prec.left(seq(optional($._parameter_attributes),
                 choice(
-                    seq($._basic_type, $._declarator),
+                    seq($._basic_type, $._declarator, optional($.ellipses)),
                     seq($._basic_type, $._declarator, $._equal, $._expression),
-                    seq($.type),
+                    seq($.type, optional($.ellipses)),
                     seq($.type, $._equal, $._expression)
                 ))),
 

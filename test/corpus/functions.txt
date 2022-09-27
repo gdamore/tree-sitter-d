@@ -48,3 +48,98 @@ int f(int c) { return c; }
         )
     )
 )
+
+==================
+Var Args Parameter Function
+==================
+
+int f(int c, ...) { return c; }
+---
+(source_file
+    (module
+        (func_declaration
+            (scalar)
+            (identifier)
+            (parameters
+                (parameter
+                    (scalar)
+                    (identifier)
+                )
+                (ellipses)
+            )
+            (function_body
+                (block_statement
+                    (return_statement
+                        (identifier)
+                    )
+                )
+            )
+        )
+    )
+)
+
+==================
+Var Args Only Function
+==================
+
+int f(...) { return c; }
+---
+(source_file
+    (module
+        (func_declaration
+            (scalar)
+            (identifier)
+            (parameters
+                (ellipses)
+            )
+            (function_body
+                (block_statement
+                    (return_statement
+                        (identifier)
+                    )
+                )
+            )
+        )
+    )
+)
+
+==================
+Var Args Type-Safe Function
+==================
+
+int f(int...) { return c; }
+---
+(source_file (module
+    (func_declaration
+        (scalar)
+        (identifier)
+        (parameters (parameter (type (scalar)) (ellipses)))
+        (function_body (block_statement (return_statement (identifier)))))
+    )
+)
+
+==================
+Pure Function
+==================
+
+int f(int a, int b) @safe pure { return a+b; }
+---
+(source_file
+    (module
+        (func_declaration
+            (scalar)
+            (identifier)
+            (parameters
+                (parameter (scalar) (identifier))
+                (parameter (scalar) (identifier))
+            )
+            (user_defined_attribute (identifier))
+            (function_body
+                (block_statement
+                    (return_statement
+                        (add_expression (identifier) (identifier)))
+                )
+            )
+        )
+    )
+)

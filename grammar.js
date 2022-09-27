@@ -71,57 +71,57 @@ module.exports = grammar({
         $._dqstring, // conventional "string" (may include escapes)
         $._bqstring, // wsiwyg `string`
         $._rqstring, // wsiwyg r"string"
-        '{',
-        '}',
-        '/',
-        '/=',
-        $._and,
-        '&=',
-        '&&',
-        '|',
-        '|=',
-        '||',
-        $._minus,
-        '-=',
-        '--',
-        $._plus,
-        '+=',
-        '++',
-        '<',
-        '<=',
-        '<<',
-        '<<=',
-        '>',
-        '>=',
-        '>>=',
-        '>>>=',
-        '>>',
-        '>>>',
-        '!',
-        '!=',
-        '(',
-        ')',
-        '[',
-        ']',
-        '?',
-        ',',
-        ';',
-        ':',
-        '$',
-        $._equal,
-        $._equalequal,
-        '=>',
-        '*',
-        '*=',
-        '%',
-        '%=',
-        '^',
-        '^=',
-        '^^',
-        '^^=',
-        '~',
-        '~=',
-        '@',
+        // '{',
+        // '}',
+        // '/',
+        // '/=',
+        // $._and,
+        // '&=',
+        // '&&',
+        // '|',
+        // '|=',
+        // '||',
+        // $._minus,
+        // '-=',
+        // '--',
+        // $._plus,
+        // '+=',
+        // '++',
+        // '<',
+        // '<=',
+        // '<<',
+        // '<<=',
+        // '>',
+        // '>=',
+        // '>>=',
+        // '>>>=',
+        // '>>',
+        // '>>>',
+        // '!',
+        // '!=',
+        // '(',
+        // ')',
+        // '[',
+        // ']',
+        // '?',
+        // ',',
+        // ';',
+        // ':',
+        // '$',
+        // $._equal,
+        // $._equalequal,
+        // '=>',
+        // '*',
+        // '*=',
+        // '%',
+        // '%=',
+        // '^',
+        // '^=',
+        // '^^',
+        // '^^=',
+        // '~',
+        // '~=',
+        // '@',
         $._dot,
         '..',
         '...',
@@ -267,15 +267,12 @@ module.exports = grammar({
         $._basic_type,
 
         // alias inlines
-        $.and,
         $.dot,
-        $.equal,
-        $.equalequal,
+        // $.equal,
+        // $.equalequal,
         $.final,
         $.in,
         $.is,
-        $.minus,
-        $.plus,
     ],
 
     word: $ => $.identifier,
@@ -335,15 +332,13 @@ module.exports = grammar({
         // Aliases.  We need these to work around tree sitter limitations.
         // These get inlined for highlighting, etc.
         //
-        and: $ => alias($._and, '&'),
+        // and: $ => alias($._and, '&'),
         dot: $ => alias($._dot, '.'),
         final: $ => alias($._final, 'final'),
-        equal: $ => alias($._equal, '='),
-        equalequal: $ => alias($._equalequal, '=='),
         in: $ => alias($._in, 'in'),
         is: $ => alias($._is, 'is'),
-        minus: $ => alias($._minus, '-'),
-        plus: $ => alias($._plus, '+'),
+        // minus: $ => alias($._minus, '-'),
+        // plus: $ => alias($._plus, '+'),
 
 
         //
@@ -377,14 +372,14 @@ module.exports = grammar({
 
         _import: $ => choice(
             $._module_fqn,
-            seq(field('alias', $.identifier), $.equal, $._module_fqn),
+            seq(field('alias', $.identifier), '=', $._module_fqn),
         ),
 
         _import_bindings: $ => seq($._import, ':', $._import_bind_list),
 
         _import_bind_list: $ => prec.left(seq($._import_bind, repeat(seq(',', $._import_bind)))),
 
-        _import_bind: $ => seq($.identifier, optional(seq($.equal, $.identifier))),
+        _import_bind: $ => seq($.identifier, optional(seq('=', $.identifier))),
 
         //
         // Mixin Declaration
@@ -469,7 +464,7 @@ module.exports = grammar({
                 seq(
                     $.var_declarator,
                     optional($.template_parameters),
-                    $.equal,
+                    '=',
                     field('value', $._initializer)),
             ),
 
@@ -485,7 +480,7 @@ module.exports = grammar({
             seq(
                 field('variable', $.identifier),
                 optional($.template_parameters),
-                $.equal,
+                '=',
                 field('value', $._initializer)),
         ),
 
@@ -538,7 +533,7 @@ module.exports = grammar({
         _auto_assignment: $ => seq(
             field('variable', $.identifier),
             optional($.template_parameters),
-            $._equal,
+            '=',
             field('value', $._initializer)),
 
         //
@@ -555,17 +550,17 @@ module.exports = grammar({
         alias_assignment: $ => choice(
             seq($.identifier,
                 optional($.template_parameters),
-                $._equal,
+                '=',
                 optional($._storage_classes),
                 $.type),
             seq($.identifier,
                 optional($.template_parameters),
-                $._equal,
+                '=',
                 optional($._storage_classes),
                 $.function_literal),
             seq($.identifier,
                 optional($.template_parameters),
-                $._equal,
+                '=',
                 $._basic_type,
                 $.parameters,
                 optional($._member_function_attributes)),
@@ -574,7 +569,7 @@ module.exports = grammar({
         //
         // Alias Assign (type alias)
         //
-        alias_assign: $ => seq($.identifier, $._equal, $.type),
+        alias_assign: $ => seq($.identifier, '=', $.type),
 
         /**************************************************
          *
@@ -880,14 +875,14 @@ module.exports = grammar({
             field('left', $._left_expression),
             field('operator',
                 choice(
-                    $.equal,
+                    '=',
                     '+=', '-=', '*=', '/=', '%=', '&=', '|=',
                     '^=', '~=', '<<=', '>>=', '>>>=', '^^=',
                 ),
                 field('right', $._expression)))),
 
         pointer_expression: $ => prec.left(PREC.CAST, seq(
-            field('operator', choice('*', $.and)),
+            field('operator', choice('*', '&')),
             field('argument', $._expression)
         )),
 
@@ -899,7 +894,7 @@ module.exports = grammar({
 
         equality_expression: $ => prec.left(PREC.EQUAL, seq(
             field('left', $._expression),
-            field('operation', choice($._equalequal, '!=')),
+            field('operation', choice('==', '!=')),
             field('right', $._expression)
         )),
 
@@ -911,7 +906,7 @@ module.exports = grammar({
 
         add_expression: $ => prec.right(PREC.ADD, seq(
             field('left', $._expression),
-            field('operation', choice($._plus, $.minus)),
+            field('operation', choice('+', '-')),
             field('right', $._expression)
         )),
 
@@ -953,7 +948,7 @@ module.exports = grammar({
 
         bitwise_and_operation: $ => prec.right(PREC.BITWISE_AND, seq(
             field('left', $._expression),
-            field('operation', $.and),
+            field('operation', '&'),
             field('right', $._expression)
         )),
 
@@ -1003,7 +998,7 @@ module.exports = grammar({
         )),
 
         unary_expression: $ => prec.left(PREC.UNARY, seq(
-            field('operator', choice('~', $._minus, $._plus, '!')),
+            field('operator', choice('~', '+', '-', '!')),
             field('argument', $._expression),
         )),
 
@@ -1052,14 +1047,14 @@ module.exports = grammar({
 
         is_expression: $ => choice(
             seq('is', paren($.type)),
-            seq('is', paren($.type, $._equalequal, $._type_specialization)),
+            seq('is', paren($.type, '==', $._type_specialization)),
             seq('is', paren($.type, ':', $._type_specialization)),
-            seq('is', paren($.type, $._equalequal, $._type_specialization, ',', $._template_parameter_list)),
+            seq('is', paren($.type, '==', $._type_specialization, ',', $._template_parameter_list)),
             seq('is', paren($.type, ':', $._type_specialization, ',', $._template_parameter_list)),
             seq('is', paren($.type, $.identifier)),
-            seq('is', paren($.type, $.identifier, $._equalequal, $._type_specialization)),
+            seq('is', paren($.type, $.identifier, '==', $._type_specialization)),
             seq('is', paren($.type, $.identifier, ':', $._type_specialization)),
-            seq('is', paren($.type, $.identifier, $._equalequal, $._type_specialization, ',', $._template_parameter_list)),
+            seq('is', paren($.type, $.identifier, '==', $._type_specialization, ',', $._template_parameter_list)),
             seq('is', paren($.type, $.identifier, ':', $._type_specialization, ',', $._template_parameter_list))
         ),
 
@@ -1238,10 +1233,10 @@ module.exports = grammar({
 
         _if_condition: $ => choice(
             $._expression,
-            seq('auto', $.identifier, $.equal, $._comma_expression),
-            seq('scope', $.identifier, $.equal, $._comma_expression),
-            seq(repeat1($._type_ctor), $.identifier, $.equal, $._comma_expression),
-            seq(repeat($._type_ctor), $._basic_type, $._declarator, $.equal, $._comma_expression),
+            seq('auto', $.identifier, '=', $._comma_expression),
+            seq('scope', $.identifier, '=', $._comma_expression),
+            seq(repeat1($._type_ctor), $.identifier, '=', $._comma_expression),
+            seq(repeat($._type_ctor), $._basic_type, $._declarator, '=', $._comma_expression),
         ),
 
         while_statement: $ => seq(
@@ -1572,12 +1567,12 @@ module.exports = grammar({
             seq(
                 repeat($._enum_member_attribute),
                 $.identifier,
-                optional(seq($.equal, $._expression))
+                optional(seq('=', $._expression))
             ),
 
         _anonymous_enum_member: $ => choice(
             $.enum_member,
-            seq($.type, $.equal, $._expression),
+            seq($.type, '=', $._expression),
         ),
 
         _anonymous_enum_members: $ => commaSep1($._anonymous_enum_member),
@@ -1645,9 +1640,9 @@ module.exports = grammar({
             prec.left(seq(optional($._parameter_attributes),
                 choice(
                     seq($._basic_type, $._declarator, optional($.ellipses)),
-                    seq($._basic_type, $._declarator, $._equal, $._expression),
+                    seq($._basic_type, $._declarator, '=', $._expression),
                     seq($.type, optional($.ellipses)),
-                    seq($.type, $._equal, $._expression)
+                    seq($.type, '=', $._expression)
                 ))),
 
         _parameter_attributes: $ =>
@@ -1843,8 +1838,8 @@ module.exports = grammar({
 
         _template_alias_parameter_default: $ =>
             prec(PREC.TEMPLATE, choice(
-                seq($._equal, $.type),
-                seq($._equal, $._conditional_expression))),
+                seq('=', $.type),
+                seq('=', $._conditional_expression))),
 
         //
         // Class/Interface/Struct/Union Template Declaration
@@ -1967,14 +1962,14 @@ module.exports = grammar({
                 )),
 
         version_specification: $ =>
-            seq('version', $._equal, choice($.int_literal, $.identifier), ';'),
+            seq('version', '=', choice($.int_literal, $.identifier), ';'),
 
         debug_condition: $ =>
             prec.left(
                 seq('debug', optional(paren(choice($.int_literal, $.identifier))))),
 
         debug_specification: $ =>
-            seq('debug', $._equal, choice($.int_literal, $.identifier), ';'),
+            seq('debug', '=', choice($.int_literal, $.identifier), ';'),
 
         static_if_condition: $ =>
             seq('static', 'if', paren($._expression)),
@@ -2100,7 +2095,7 @@ module.exports = grammar({
                 prec.left(PREC.INCLUSIVE_OR, seq($.operand, '|', $.operand)),
                 prec.left(PREC.INCLUSIVE_OR, seq($.operand, '|', $.operand)),
                 prec.left(PREC.EXCLUSIVE_OR, seq($.operand, '^', $.operand)),
-                prec.left(PREC.EQUAL, seq($.operand, $.equalequal, $.operand)),
+                prec.left(PREC.EQUAL, seq($.operand, '==', $.operand)),
                 prec.left(PREC.RELATIONAL, seq($.operand, '<', $.operand)),
                 prec.left(PREC.RELATIONAL, seq($.operand, '<=', $.operand)),
                 prec.left(PREC.RELATIONAL, seq($.operand, '>', $.operand)),
@@ -2108,7 +2103,7 @@ module.exports = grammar({
                 prec.left(PREC.SHIFT, seq($.operand, '<<', $.operand)),
                 prec.left(PREC.SHIFT, seq($.operand, '>>', $.operand)),
                 prec.left(PREC.SHIFT, seq($.operand, '>>>', $.operand)),
-                prec.left(PREC.ADD, seq($.operand, $._plus, $.operand)),
+                prec.left(PREC.ADD, seq($.operand, '+', $.operand)),
                 prec.left(PREC.ADD, seq($.operand, '-', $.operand)),
                 prec.left(PREC.MULTIPLY, seq($.operand, '*', $.operand)),
                 prec.left(PREC.MULTIPLY, seq($.operand, '/', $.operand)),
@@ -2117,7 +2112,7 @@ module.exports = grammar({
                 prec.left(PREC.UNARY, seq($._asm_type_prefix, 'ptr', $.operand)),
                 prec.left(PREC.UNARY, seq('offsetof', $.operand)),
                 prec.left(PREC.UNARY, seq('seg', $.operand)),
-                prec.left(PREC.UNARY, seq($._plus, $.operand)),
+                prec.left(PREC.UNARY, seq('+', $.operand)),
                 prec.left(PREC.UNARY, seq('-', $.operand)),
                 prec.left(PREC.UNARY, seq('!', $.operand)),
                 prec.left(PREC.UNARY, seq('~', $.operand)),

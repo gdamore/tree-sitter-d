@@ -31,57 +31,6 @@ enum TokenType {
 	L_DQSTRING,   // "string" may include escapes
 	L_BQSTRING,   // `string` (no escapes permitted)
 	L_RQSTRING,   // r"string" (no escapes permitted)
-	S_LBRACE,     // {
-	S_RBRACE,     // }
-	S_DIV,        // /
-	S_DIV_EQ,     // /=
-	S_AND,        // &
-	S_AND_EQ,     // &=
-	S_AND_AND,    // &&
-	S_OR,         // |
-	S_OR_EQ,      // |=
-	S_OR_OR,      // ||
-	S_MINUS,      // -
-	S_MINUS_EQ,   // -=
-	S_DEC,        // --
-	S_PLUS,       // +
-	S_PLUS_EQ,    // +=
-	S_INC,        // ++
-	S_LT,         // <
-	S_LTE,        // <=
-	S_LSHIFT,     // <<
-	S_LSHIFT_EQ,  // <<=
-	S_GT,         // >
-	S_GTE,        // >=
-	S_RSHIFT_EQ,  // >>=
-	S_URSHIFT_EQ, // >>>=
-	S_RSHIFT,     // >>
-	S_URSHIFT,    // >>>
-	S_NOT,        // !
-	S_NOT_EQ,     // !=
-	S_LPAREN,     // (
-	S_RPAREN,     // )
-	S_LBRACKET,   // []
-	S_RBRACKET,   // ]
-	S_QUEST,      // ?
-	S_COMMA,      // ,
-	S_SEMI,       // ;
-	S_COLON,      // :
-	S_DOLLAR,     // $
-	S_EQ,         // =
-	S_EQ_EQ,      // ==
-	S_LAMBDA,     // =>
-	S_MUL,        // *
-	S_MUL_EQ,     // *=
-	S_MOD,        // %
-	S_MOD_EQ,     // %=
-	S_XOR,        // ^
-	S_XOR_EQ,     // ^=
-	S_POW,        // ^^
-	S_POW_EQ,     // ^^=
-	S_TILDE,      // ~
-	S_APPEND,     // ~=
-	S_AT,         // @
 	S_DOT,        // .
 	S_RANGE,      // ..
 	S_ELLIPSES,   // ...
@@ -323,89 +272,10 @@ static const char *const keywords[N_TOKENS] = {
 	[K__VERSION]         = "__VERSION__",
 };
 
-static const char *const symbols[N_TOKENS] = {
-	[S_LBRACE]     = "{",
-	[S_RBRACE]     = "}",
-	[S_DIV]        = "/",
-	[S_DIV_EQ]     = "/=",
-	[S_AND]        = "&",
-	[S_AND_EQ]     = "&=",
-	[S_AND_AND]    = "&&",
-	[S_OR]         = "|",
-	[S_OR_EQ]      = "|=",
-	[S_OR_OR]      = "||",
-	[S_MINUS]      = "--",
-	[S_MINUS_EQ]   = "-=",
-	[S_DEC]        = "--",
-	[S_PLUS]       = "+",
-	[S_PLUS_EQ]    = "+=",
-	[S_INC]        = "++",
-	[S_LT]         = "<",
-	[S_LTE]        = "<=",
-	[S_LSHIFT]     = "<<",
-	[S_LSHIFT_EQ]  = "<<=",
-	[S_GT]         = ">",
-	[S_GTE]        = ">=",
-	[S_RSHIFT_EQ]  = ">>=",
-	[S_URSHIFT_EQ] = ">>>=",
-	[S_RSHIFT]     = ">>",
-	[S_URSHIFT]    = ">>>",
-	[S_NOT]        = "!",
-	[S_NOT_EQ]     = "!=",
-	[S_LPAREN]     = "(",
-	[S_RPAREN]     = ")",
-	[S_LBRACKET]   = "[",
-	[S_RBRACKET]   = "]",
-	[S_QUEST]      = "?",
-	[S_COMMA]      = ",",
-	[S_SEMI]       = ";",
-	[S_COLON]      = ":",
-	[S_DOLLAR]     = "$",
-	[S_EQ]         = "=",
-	[S_EQ_EQ]      = "==",
-	[S_LAMBDA]     = "=>",
-	[S_MUL]        = "*",
-	[S_MUL_EQ]     = "*=",
-	[S_MOD]        = "%",
-	[S_MOD_EQ]     = "%=",
-	[S_XOR]        = "^",
-	[S_XOR_EQ]     = "^=",
-	[S_POW]        = "^^",
-	[S_POW_EQ]     = "^^=",
-	[S_TILDE]      = "~",
-	[S_APPEND]     = "~=",
-	[S_AT]         = "@",
-};
-
 // Starting indicates the first index in the symbols array
 // that starts with the given character.  We also do this
 // for keywords for the same reason.
 static int starting[256] = {
-	['{'] = S_LBRACE,
-	['}'] = S_RBRACE,
-	['/'] = S_DIV,
-	['&'] = S_AND,
-	['|'] = S_OR,
-	['-'] = S_MINUS,
-	['+'] = S_PLUS,
-	['<'] = S_LT,
-	['>'] = S_GT,
-	['!'] = S_NOT,
-	['('] = S_LPAREN,
-	[')'] = S_RPAREN,
-	['['] = S_LBRACKET,
-	[']'] = S_RBRACKET,
-	['?'] = S_QUEST,
-	[','] = S_COMMA,
-	[';'] = S_SEMI,
-	[':'] = S_COLON,
-	['$'] = S_DOLLAR,
-	['='] = S_EQ,
-	['*'] = S_MUL,
-	['%'] = S_MOD,
-	['^'] = S_XOR,
-	['~'] = S_TILDE,
-	['@'] = S_AT,
 	['a'] = K_ABSTRACT,
 	['b'] = K_BODY,
 	['c'] = K_CASE,
@@ -630,66 +500,6 @@ match_raw_string(TSLexer *lexer, int quote, int token)
 	}
 	// unterminated
 	return (false);
-}
-
-static bool
-match_symbol(TSLexer *lexer, const bool *valid)
-{
-	// entry condition must be with the lexer containing starting
-	// character for a symbol we recognize.
-
-	int  c = lexer->lookahead;
-	int  start;
-	bool result   = false;
-	char token[8] = {};
-
-	// starting character a symbol start?
-	if (((start = starting[c]) == 0) || symbols[start] == NULL) {
-		return (false);
-	}
-	for (int i = 0; i < sizeof(token) - 1; i++) {
-		token[i]             = c;
-		token[i + 1]         = 0;
-		bool        possible = false;
-		bool        match    = false;
-		const char *sym;
-
-		for (int j = start; (sym = symbols[j]) != NULL; j++) {
-			if (sym[0] != token[0]) {
-				break;
-			}
-			if (!valid[j]) {
-				continue;
-			}
-			if (strcmp(token, sym) == 0) {
-				lexer->result_symbol = j;
-				match                = true;
-				break;
-			}
-
-			// if the token is a prefix for this symbol, then maybe
-			// its a candidate
-			if (strncmp(token, sym, strlen(token)) == 0) {
-				possible = true;
-				break;
-			}
-		}
-
-		if (!possible && !match) {
-			// no further need to keep searching
-			return (result);
-		}
-
-		lexer->advance(lexer, false);
-		c = lexer->lookahead;
-
-		if (match) {
-			// we saved the matched token in the loop above
-			lexer->mark_end(lexer);
-			result = true;
-		}
-	}
-	return (result);
 }
 
 // match identifier matches identifiers *and* symbols.
@@ -1284,11 +1094,6 @@ tree_sitter_d_external_scanner_scan(
 		        : false);
 	}
 
-	// these are all normal symbols not needing special treatment
-	if (strchr("&|~+<>!()[]{}?,:;$=%^~@", c) != NULL) {
-		return (match_symbol(lexer, valid));
-	}
-
 	if (c == '#') {
 		return (match_hash_or_shebang(lexer, valid));
 	}
@@ -1305,25 +1110,6 @@ tree_sitter_d_external_scanner_scan(
 		}
 		if (c == '+') {
 			return (match_nest_comment(lexer, valid));
-		}
-		if (c == '=') {
-			if (valid[S_DIV_EQ]) {
-				lexer->advance(lexer, false);
-				lexer->mark_end(lexer);
-				lexer->result_symbol = S_DIV_EQ;
-				return (true);
-			} else {
-				// this assumes that /= cannot ever occur
-				// together except as a single symbol.  if this
-				// is not the case then delete this else
-				// clause.
-				return (false);
-			}
-		}
-		if (valid[S_DIV]) {
-			lexer->mark_end(lexer);
-			lexer->result_symbol = S_DIV;
-			return (true);
 		}
 		return (false);
 	}

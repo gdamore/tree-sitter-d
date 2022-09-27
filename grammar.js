@@ -310,15 +310,15 @@ module.exports = grammar({
             $.constructor,
             // TODO: $._destructor,
             // TODO: $._postblit,
-            // TODO: $._invariant
+            // TODO: $.invariant,
             // TODO: $._unittest
             $.alias_this,
             // TODO: $._static_dtor,
             // TODO: $._shared_static_dtor,
             // TODO: $._cond_decl,
-            // TODO: $._debug_spec,
-            // TODO: $._version_spec,
-            // TODO: $._static_assert
+            $.debug_specification,
+            $.version_specification,
+            // static assert included in declaration
             // TODO: $._template_decl,
             // TODO: $._template_mixin,
             $.mixin_declaration,
@@ -413,7 +413,7 @@ module.exports = grammar({
                 $.import_declaration,
                 // TODO: conditional_declaration,
                 // TODO: static_foreach_declaration,
-                // TODO: static assert,
+                $.static_assert,
             ),
 
         // these already storage classes, so to prevent conflicts
@@ -613,15 +613,15 @@ module.exports = grammar({
             'void'
         ),
 
-        _type_suffix: $ => choice(
+        _type_suffix: $ => prec.left(choice(
             '*',
             bracket(),
             bracket($._expression),
             bracket($._expression, '..', $._expression),
             bracket($.type),
-            // TODO: seq('delegate', $._parameters, optional($._member_function_attrs)),
-            // TODO: seq('function', $._parameters, optional($._function_attrs)),
-        ),
+            seq('delegate', $.parameters, optional($._member_function_attributes)),
+            seq('function', $.parameters, repeat($._function_attribute)),
+        )),
 
         _qualified_id: $ => prec.left(PREC.QUALIFIED_ID, choice(
             $.identifier,
@@ -1163,16 +1163,16 @@ module.exports = grammar({
             $.with_statement,
             $.synchronized_statement,
             $.try_statement,
+            $.scope_guard_statement,
             // TODO: many :-)
-            // scope_guard_statement
-            // asm_statement
+            $.asm_statement,
             // mixin_statement
             $.foreach_range_statement,
             $.pragma_statement,
             // conditional_statement
             // static_foreach_statement
-            // static assert
             // template_mixin
+            // $.static_assert - already converted by declaration_statement
             // $.import_declaration, - already covered by declaration_statement
         ),
 
@@ -1272,6 +1272,7 @@ module.exports = grammar({
         //
         // Switch Statement
         //
+
         switch_statement: $ =>
             seq('switch', paren(commaSep1($._expression), $._scope_statement)),
 
@@ -1320,6 +1321,20 @@ module.exports = grammar({
 
         finally: $ => seq('finally', $._no_scope_non_empty_statement),
 
+
+        //
+        // Scope Guard Statement
+        //
+        scope_guard_statement: $ =>
+            seq('scope',
+                paren(choice('exit', 'success', 'failure')),
+                choice($._non_empty_statement, $.block_statement)),
+
+        //
+        // AsmStatement
+        //
+        asm_statement: $ =>
+            seq('asm', repeat($._function_attribute), brace(/* TODO */)),
 
         /**************************************************
          *
@@ -1763,7 +1778,41 @@ module.exports = grammar({
          *
          */
 
+        // TODO:
 
+        /**************************************************
+         *
+         * 3.16 CONDITIONAL COMPILATION
+         *
+         */
+
+        // TODO: conditional_declaration
+        // TODO: conditional_statement
+
+        version_condition: $ =>
+            seq(
+                'version',
+                paren(choice($.int_literal, $.identifier, 'unittest', 'assert'))
+            ),
+
+        version_specification: $ =>
+            seq('version', $._equal, choice($.int_literal, $.identifier), ';'),
+
+        debug_condition: $ =>
+            seq('debug', optional(paren(choice($.int_literal, $.identifier)))),
+
+        debug_specification: $ =>
+            seq('debug', $._equal, choice($.int_literal, $.identifier), ';'),
+
+        static_if_condition: $ =>
+            seq('static', 'if', paren($._expression)),
+
+        // TODO: staticforeach
+        // TODO: staticforeachdirection
+        // TODO: staticforeachstmt
+
+        static_assert: $ =>
+            seq('static', 'assert', paren($._assert_arguments), ';'),
     },
 
     conflicts: $ => [

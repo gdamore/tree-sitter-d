@@ -61,8 +61,6 @@ module.exports = grammar({
     externals: $ => [
         $.endFile,
         $.comment,
-        $.identifier,
-        $.bom,
         $.directive,
         $.shebang,
         $.int_literal,
@@ -71,122 +69,6 @@ module.exports = grammar({
         $._dqstring, // conventional "string" (may include escapes)
         $._bqstring, // wsiwyg `string`
         $._rqstring, // wsiwyg r"string"
-        'abstract',
-        'alias',
-        'align',
-        'asm',
-        'assert',
-        'auto',
-        'body', // obsolete
-        'bool',
-        'break',
-        'byte',
-        'case',
-        'cast',
-        'catch',
-        'cdouble', // obsolete
-        'cent',    // obsolete
-        'cfloat',  // obsolete
-        'char',
-        'class',
-        'const',
-        'continue',
-        'creal', // obsolete
-        'dchar',
-        'debug',
-        'default',
-        'delegate',
-        'delete', // obsolete
-        'deprecated',
-        'do',
-        'double',
-        'else',
-        'enum',
-        'export',
-        'extern',
-        'false',
-        $._final,
-        'finally',
-        'float',
-        'for',
-        'foreach',
-        'foreach_reverse',
-        'function',
-        'goto',
-        'idouble', // obsolete
-        'if',
-        'ifloat', // obsolete
-        'immutable',
-        'import',
-        $._in,
-        'inout',
-        'int',
-        'interface',
-        'invariant',
-        'ireal', // obsolete
-        $._is,
-        'lazy',
-        $._long,
-        'macro', // obsolete?
-        'mixin',
-        'module',
-        'new',
-        'nothrow',
-        'null',
-        'out',
-        'override',
-        'package',
-        'pragma',
-        'private',
-        'protected',
-        'public',
-        'pure',
-        'real',
-        'ref',
-        'return',
-        'scope',
-        'shared',
-        'short',
-        'static',
-        'struct',
-        'super',
-        'switch',
-        'synchronized',
-        'template',
-        'this',
-        'throw',
-        'true',
-        'try',
-        'typeid',
-        'typeof',
-        'ubyte',
-        'ucent', // obsolete
-        'uint',
-        'ulong',
-        'union',
-        'unittest',
-        'ushort',
-        'version',
-        'void',
-        'wchar',
-        'while',
-        'with',
-        '__FILE__',
-        '__FILE_FULL_PATH__',
-        '__MODULE__',
-        '__LINE__',
-        '__FUNCTION__',
-        '__PRETTY_FUNCTION__',
-        '__gshared',
-        '__traits',
-        '__vector',
-        '__parameters',
-        '__DATE__',
-        '__EOF__',
-        '__TIME__',
-        '__TIMESTAMP__',
-        '__VENDOR__',
-        '__VERSION__',   // integer literal version
     ],
 
     extras: $ => [
@@ -213,9 +95,9 @@ module.exports = grammar({
         $._basic_type,
 
         // alias inlines
-        $.final,
-        $.in,
-        $.is,
+        // $.final,
+        // $.in,
+        // $.is,
     ],
 
     word: $ => $.identifier,
@@ -229,13 +111,20 @@ module.exports = grammar({
          *
          * 3.1 LEXER
          *
-         * Most of the lexer is in the external scanner.c.
+         * See also the scanner.c, for some external symbols.
          */
 
         source_file: $ => seq(
-            optional(choice($.bom, $.shebang)),
+            optional(choice($._bom, $.shebang)),
             optional($.module)
         ),
+
+        _bom: $=> '\uFEFF',
+
+        //
+        // Identifier
+        //
+        identifier: $ => /[\p{L}_][\p{L}_\d]*/,
 
         /**************************************************
          *
@@ -276,9 +165,9 @@ module.exports = grammar({
         // These get inlined for highlighting, etc.
         //
         // and: $ => alias($._and, '&'),
-        final: $ => alias($._final, 'final'),
-        in: $ => alias($._in, 'in'),
-        is: $ => alias($._is, 'is'),
+        // final: $ => alias($._final, 'final'),
+        // in: $ => alias($._in, 'in'),
+        // is: $ => alias($._is, 'is'),
         // minus: $ => alias($._minus, '-'),
         // plus: $ => alias($._plus, '+'),
 
@@ -441,7 +330,7 @@ module.exports = grammar({
             'static',
             'extern',
             'abstract',
-            $.final,
+            'final',
             'override',
             'synchronized',
             'auto',
@@ -548,7 +437,7 @@ module.exports = grammar({
             'ushort',
             'int',
             'uint',
-            $._long,
+            'long',
             'ulong',
             'cent', // deprecated
             'ucent', // deprecated
@@ -641,7 +530,7 @@ module.exports = grammar({
             'static',
             'extern',
             'abstract',
-            $._final,
+            'final',
             'override',
             'synchronized',
             'auto',
@@ -898,13 +787,13 @@ module.exports = grammar({
 
         membership_operation: $ => prec.right(PREC.MEMBERSHIP, seq(
             field('left', $._expression),
-            field('operation', seq(optional('!'), $.in)),
+            field('operation', seq(optional('!'), 'in')),
             field('right', $._expression)
         )),
 
         identity_operation: $ => prec.right(PREC.MEMBERSHIP, seq(
             field('left', $._expression),
-            field('operation', seq(optional('!'), $.is)),
+            field('operation', seq(optional('!'), 'is')),
             field('right', $._expression)
         )),
 
@@ -989,18 +878,19 @@ module.exports = grammar({
             seq('typeid', paren($._expression))
         ),
 
-        is_expression: $ => choice(
-            seq('is', paren($.type)),
-            seq('is', paren($.type, '==', $._type_specialization)),
-            seq('is', paren($.type, ':', $._type_specialization)),
-            seq('is', paren($.type, '==', $._type_specialization, ',', $._template_parameter_list)),
-            seq('is', paren($.type, ':', $._type_specialization, ',', $._template_parameter_list)),
-            seq('is', paren($.type, $.identifier)),
-            seq('is', paren($.type, $.identifier, '==', $._type_specialization)),
-            seq('is', paren($.type, $.identifier, ':', $._type_specialization)),
-            seq('is', paren($.type, $.identifier, '==', $._type_specialization, ',', $._template_parameter_list)),
-            seq('is', paren($.type, $.identifier, ':', $._type_specialization, ',', $._template_parameter_list))
-        ),
+        is_expression: $ =>
+            prec.left(choice(
+                seq('is', paren($.type)),
+                seq('is', paren($.type, '==', $._type_specialization)),
+                seq('is', paren($.type, ':', $._type_specialization)),
+                seq('is', paren($.type, '==', $._type_specialization, ',', $._template_parameter_list)),
+                seq('is', paren($.type, ':', $._type_specialization, ',', $._template_parameter_list)),
+                seq('is', paren($.type, $.identifier)),
+                seq('is', paren($.type, $.identifier, '==', $._type_specialization)),
+                seq('is', paren($.type, $.identifier, ':', $._type_specialization)),
+                seq('is', paren($.type, $.identifier, '==', $._type_specialization, ',', $._template_parameter_list)),
+                seq('is', paren($.type, $.identifier, ':', $._type_specialization, ',', $._template_parameter_list))
+            )),
 
         _type_specialization: $ => choice(
             $.type,
@@ -1143,7 +1033,7 @@ module.exports = grammar({
             $.synchronized_statement,
             $.try_statement,
             $.scope_guard_statement,
-            // $.asm_statement,
+            $.asm_statement,
             $.foreach_range_statement,
             $.pragma_statement,
             $.conditional_statement,
@@ -1279,7 +1169,7 @@ module.exports = grammar({
                 $.block_statement)),
 
         final_switch_statement: $ =>
-            seq($.final, 'switch', paren($._comma_expression), $._scope_statement),
+            seq('final', 'switch', paren($._comma_expression), $._scope_statement),
 
         continue_statement: $ => seq('continue', optional($.identifier), ';'),
 
@@ -1598,8 +1488,8 @@ module.exports = grammar({
             'immutable', // type_ctor
             'inout', // type_ctor
             'shared', // type_ctor
-            $._final,
-            $._in,
+            'final',
+            'in',
             'lazy',
             'out',
             'ref',
@@ -1668,13 +1558,13 @@ module.exports = grammar({
             choice($.in_statement, $.out_statement),
 
         in_contract_expression: $ =>
-            seq($.in, paren($._assert_arguments)),
+            seq('in', paren($._assert_arguments)),
 
         out_contract_expression: $ =>
             seq('out', paren(optional($.identifier), ':', $._assert_arguments)),
 
         in_statement: $ =>
-            seq($.in, $.block_statement),
+            seq('in', $.block_statement),
 
         out_statement: $ =>
             seq('out', optional(paren($.identifier)), $.block_statement),
@@ -2062,7 +1952,7 @@ module.exports = grammar({
                 prec.left(PREC.UNARY, seq('~', $.operand)),
                 $._asm_primary),
 
-        opcode: $ => choice($.identifier, 'int', $.in, 'out'),
+        opcode: $ => choice($.identifier, 'int', 'in', 'out'),
 
         _asm_type_prefix: $ =>
             choice('near', 'far', 'word', 'dword', 'qword', $.scalar),
@@ -2087,7 +1977,7 @@ module.exports = grammar({
         [$._storage_class, $._attribute],
         [$._initializer, $._kv_pair],
         [$._symbol_tail, $._conditional_expression],
-        [$.final, $._attribute,],
+        //['final', $._attribute,],
         [$._variadic_arguments_attribute, $._parameter_storage_class],
         [$._shortened_function_body, $._function_contract],
         [$._missing_function_body, $.constructor_template],

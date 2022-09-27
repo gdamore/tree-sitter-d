@@ -21,8 +21,6 @@
 enum TokenType {
 	END_FILE,
 	COMMENT,
-	IDENTIFIER,
-	BOM,       // \uFEFF
 	DIRECTIVE, // # <to end of line>
 	SHEBANG,   // #!
 	L_INT,
@@ -31,268 +29,7 @@ enum TokenType {
 	L_DQSTRING, // "string" may include escapes
 	L_BQSTRING, // `string` (no escapes permitted)
 	L_RQSTRING, // r"string" (no escapes permitted)
-	K_ABSTRACT,
-	K_ALIAS,
-	K_ALIGN,
-	K_ASM,
-	K_ASSERT,
-	K_AUTO,
-	K_BODY, // obsolete
-	K_BOOL,
-	K_BREAK,
-	K_BYTE,
-	K_CASE,
-	K_CAST,
-	K_CATCH,
-	K_CDOUBLE, // obsolete
-	K_CENT,    // obsolete
-	K_CFLOAT,  // obsolete
-	K_CHAR,
-	K_CLASS,
-	K_CONST,
-	K_CONTINUE,
-	K_CREAL, // obsolete
-	K_DCHAR,
-	K_DEBUG,
-	K_DEFAULT,
-	K_DELEGATE,
-	K_DELETE, // obsolete
-	K_DEPRECATED,
-	K_DO,
-	K_DOUBLE,
-	K_ELSE,
-	K_ENUM,
-	K_EXPORT,
-	K_EXTERN,
-	K_FALSE,
-	K_FINAL,
-	K_FINALLY,
-	K_FLOAT,
-	K_FOR,
-	K_FOREACH,
-	K_FOREACH_REVERSE,
-	K_FUNCTION,
-	K_GOTO,
-	K_IDOUBLE, // obsolete
-	K_IF,
-	K_IFLOAT, // obsolete
-	K_IMMUTABLE,
-	K_IMPORT,
-	K_IN,
-	K_INOUT,
-	K_INT,
-	K_INTERFACE,
-	K_INVARIANT,
-	K_IREAL,
-	K_IS,
-	K_LAZY,
-	K_LONG,
-	K_MACRO,
-	K_MIXIN,
-	K_MODULE,
-	K_NEW,
-	K_NOTHROW,
-	K_NULL,
-	K_OUT,
-	K_OVERRIDE,
-	K_PACKAGE,
-	K_PRAGMA,
-	K_PRIVATE,
-	K_PROTECTED,
-	K_PUBLIC,
-	K_PURE,
-	K_REAL,
-	K_REF,
-	K_RETURN,
-	K_SCOPE,
-	K_SHARED,
-	K_SHORT,
-	K_STATIC,
-	K_STRUCT,
-	K_SUPER,
-	K_SWITCH,
-	K_SYNCHRONIZED,
-	K_TEMPLATE,
-	K_THIS,
-	K_THROW,
-	K_TRUE,
-	K_TRY,
-	K_TYPEID,
-	K_TYPEOF,
-	K_UBYTE,
-	K_UCENT,
-	K_UINT,
-	K_ULONG,
-	K_UNION,
-	K_UNITTEST,
-	K_USHORT,
-	K_VERSION,
-	K_VOID,
-	K_WCHAR,
-	K_WHILE,
-	K_WITH,
-	K__FILE,
-	K__FILE_FULL_PATH,
-	K__MODULE,
-	K__LINE,
-	K__FUNCTION,
-	K__PRETTY_FUNCTION,
-	K__GSHARED,
-	K__TRAITS,
-	K__VECTOR,
-	K__PARAMETERS,
-	K__DATE,      // string literal date
-	K__EOF,       // end of file - ends scanning
-	K__TIME,      // string literal time
-	K__TIMESTAMP, // string literal timestamp
-	K__VENDOR,    // string literal vendor
-	K__VERSION,   // integer literal version
-	N_TOKENS,     // must be last, not a real token
-};
-
-static const char *const keywords[N_TOKENS] = {
-	[K_ABSTRACT]         = "abstract",
-	[K_ALIAS]            = "alias",
-	[K_ALIGN]            = "align",
-	[K_ASM]              = "asm",
-	[K_ASSERT]           = "assert",
-	[K_AUTO]             = "auto",
-	[K_BODY]             = "body",
-	[K_BOOL]             = "bool",
-	[K_BREAK]            = "break",
-	[K_BYTE]             = "byte",
-	[K_CASE]             = "case",
-	[K_CAST]             = "cast",
-	[K_CATCH]            = "catch",
-	[K_CDOUBLE]          = "cdouble",
-	[K_CENT]             = "cent",
-	[K_CFLOAT]           = "cfloat",
-	[K_CHAR]             = "char",
-	[K_CLASS]            = "class",
-	[K_CONST]            = "const",
-	[K_CONTINUE]         = "continue",
-	[K_CREAL]            = "creal",
-	[K_DCHAR]            = "dchar",
-	[K_DEBUG]            = "debug",
-	[K_DEFAULT]          = "default",
-	[K_DELEGATE]         = "delegate",
-	[K_DELETE]           = "delete",
-	[K_DEPRECATED]       = "deprecated",
-	[K_DO]               = "do",
-	[K_DOUBLE]           = "double",
-	[K_ELSE]             = "else",
-	[K_ENUM]             = "enum",
-	[K_EXPORT]           = "export",
-	[K_EXTERN]           = "extern",
-	[K_FALSE]            = "false",
-	[K_FINAL]            = "final",
-	[K_FINALLY]          = "finally",
-	[K_FLOAT]            = "float",
-	[K_FOR]              = "for",
-	[K_FOREACH]          = "foreach",
-	[K_FOREACH_REVERSE]  = "foreach_reverse",
-	[K_FUNCTION]         = "function",
-	[K_GOTO]             = "goto",
-	[K_IDOUBLE]          = "idouble",
-	[K_IF]               = "if",
-	[K_IFLOAT]           = "ifloat",
-	[K_IMMUTABLE]        = "immutable",
-	[K_IMPORT]           = "import",
-	[K_IN]               = "in",
-	[K_INOUT]            = "inout",
-	[K_INT]              = "int",
-	[K_INTERFACE]        = "interface",
-	[K_INVARIANT]        = "invariant",
-	[K_IREAL]            = "ireal",
-	[K_IS]               = "is",
-	[K_LAZY]             = "lazy",
-	[K_LONG]             = "long",
-	[K_MACRO]            = "macro",
-	[K_MIXIN]            = "mixin",
-	[K_MODULE]           = "module",
-	[K_NEW]              = "new",
-	[K_NOTHROW]          = "nothrow",
-	[K_NULL]             = "null",
-	[K_OUT]              = "out",
-	[K_OVERRIDE]         = "override",
-	[K_PACKAGE]          = "package",
-	[K_PRAGMA]           = "pragma",
-	[K_PRIVATE]          = "private",
-	[K_PROTECTED]        = "protected",
-	[K_PUBLIC]           = "public",
-	[K_PURE]             = "pure",
-	[K_REAL]             = "real",
-	[K_REF]              = "ref",
-	[K_RETURN]           = "return",
-	[K_SCOPE]            = "scope",
-	[K_SHARED]           = "shared",
-	[K_SHORT]            = "short",
-	[K_STATIC]           = "static",
-	[K_STRUCT]           = "struct",
-	[K_SUPER]            = "super",
-	[K_SWITCH]           = "switch",
-	[K_SYNCHRONIZED]     = "synchronized",
-	[K_TEMPLATE]         = "template",
-	[K_THIS]             = "this",
-	[K_THROW]            = "throw",
-	[K_TRUE]             = "true",
-	[K_TRY]              = "try",
-	[K_TYPEID]           = "typeid",
-	[K_TYPEOF]           = "typeof",
-	[K_UBYTE]            = "ubyte",
-	[K_UCENT]            = "ucent",
-	[K_UINT]             = "uint",
-	[K_ULONG]            = "ulong",
-	[K_UNION]            = "union",
-	[K_UNITTEST]         = "unittest",
-	[K_USHORT]           = "ushort",
-	[K_VERSION]          = "version",
-	[K_VOID]             = "void",
-	[K_WCHAR]            = "wchar",
-	[K_WHILE]            = "while",
-	[K_WITH]             = "with",
-	[K__FILE]            = "__FILE__",
-	[K__FILE_FULL_PATH]  = "__FILE_FULL_PATH__",
-	[K__MODULE]          = "__MODULE__",
-	[K__LINE]            = "__LINE__",
-	[K__FUNCTION]        = "__FUNCTION__",
-	[K__PRETTY_FUNCTION] = "__PRETTY_FUNCTION__",
-	[K__GSHARED]         = "__GSHARED__",
-	[K__TRAITS]          = "__TRAITS__",
-	[K__VECTOR]          = "__VECTOR__",
-	[K__PARAMETERS]      = "__PARAMETERS__",
-	[K__DATE]            = "__DATE__",
-	[K__EOF]             = "__EOF__",
-	[K__TIME]            = "__TIME__",
-	[K__TIMESTAMP]       = "__TIMESTAMP__",
-	[K__VENDOR]          = "__VENDOR__",
-	[K__VERSION]         = "__VERSION__",
-};
-
-// Starting indicates the first index in the symbols array
-// that starts with the given character.  We also do this
-// for keywords for the same reason.
-static int starting[256] = {
-	['a'] = K_ABSTRACT,
-	['b'] = K_BODY,
-	['c'] = K_CASE,
-	['d'] = K_DCHAR,
-	['e'] = K_ELSE,
-	['f'] = K_FALSE,
-	['g'] = K_GOTO,
-	['i'] = K_IDOUBLE,
-	['l'] = K_LAZY,
-	['m'] = K_MACRO,
-	['n'] = K_NEW,
-	['o'] = K_OUT,
-	['p'] = K_PACKAGE,
-	['r'] = K_REAL,
-	['s'] = K_SCOPE,
-	['t'] = K_TEMPLATE,
-	['u'] = K_UBYTE,
-	['v'] = K_VERSION,
-	['w'] = K_WCHAR,
-	['_'] = K__FILE,
+	N_TOKENS,   // must be last, not a real token
 };
 
 static bool
@@ -499,134 +236,36 @@ match_raw_string(TSLexer *lexer, int quote, int token)
 	return (false);
 }
 
-// match identifier matches identifiers *and* symbols.
-// it parses until it finds a character that meets one
-// of the following criteria:
-// - not an alpha/alphanum/underscore
-// - unicode 2029/2028 (treated as end of line) -- token breaking
-// - any other unicode (pressumed to extend the token, and treated as
-//   necessarily converting the string to an identifier)
+// NB: this scans ahead aggressively, so it cannot
+// be used if other symbols start with underscore.
+// As of right now, only __EOF__ needs special lexer support.
 static bool
-match_identifier(TSLexer *lexer, const bool *valid)
+match_eof(TSLexer *lexer)
 {
-	int  c = lexer->lookahead;
-	char token[32];
+	const char *want = "__EOF__";
+	int         i    = 0;
+	int         l    = strlen(want);
+	int         c;
 
-	assert(isalpha(c) || c == '_' || c > 0x7f);
-	assert(c != 0x2028 && c != 0x2029); // non-latin treated as letters
-
-	// a couple of very special cases exist:
-	// r -- can be followed by double quote("), indicating raw string
-	// q -- can be followed by double quote("), indicating delimited string
-	//   -- can be followed by open brace ({), indicating token string
-	//
-	// everything else is either an identifier.  if the identifier
-	// parses as a reserved word, but the reserved word is not legal,
-	// we return false for now.
-
-	// first lex out the "word", without doing any kind of lookup
-	int i;
-	do {
-		token[i++] = c;
-		token[i]   = 0;
-		lexer->advance(lexer, false);
-		c = lexer->lookahead;
-		if (i == 1) {
-			// there is no circumstance where r" can be anything
-			// other than the start of a raw string (outside of
-			// comments of course)
-			if (token[0] == 'r' && c == '"') {
-				if (valid[L_RQSTRING]) {
-					return (match_raw_string(
-					    lexer, '"', L_RQSTRING));
-				} else {
-					return (false);
-				}
-			}
-			if (token[0] == 'q') {
-				if (c == '"') {
-					// TODO: DELIMITED STRING
-				}
-				if (c == '{') {
-					// TODO: TOKEN STRING -- we need to
-					// bounce this up to the parser
-				}
+	if (lexer->lookahead != '\x1a') { // 0x1A is always EOF
+		for (i = 0; i < l; i++) {
+			if (lexer->lookahead != want[i]) {
 				return (false);
 			}
-		}
-		if ((isascii(c) && (!isalnum(c) && c != '_')) || is_eol(c)) {
-			break;
-		}
-		if ((c > 0x7f) || (i >= sizeof(token) - 2)) {
-			// treat all other non-ASCII characters as if they were
-			// letters. if we ever get smarter unicode, we can fix
-			// this, but it's probably more than sufficient for
-			// tree-sitter.  These also cannot match any keywords,
-			// so they can only be identifiers.  We can do th4e
-			// same thing if the symbol length is longer than our
-			// longest keyword
-			if (!valid[IDENTIFIER]) {
-				return (false);
-			}
-			while (((c > 0x7F) || isalnum(c) || c == '_') &&
-			    !lexer->eof(lexer)) {
-				lexer->advance(lexer, false);
-			}
-			lexer->mark_end(lexer);
-			lexer->result_symbol = IDENTIFIER;
-			return (true);
-		}
-	} while (c != 0);
-
-	assert(token[0] != 0);
-
-	// is it a reserved word?
-	int start = starting[token[0]];
-	int found = 0;
-	if (start != 0) {
-		const char *kw;
-		for (int j = start; (kw = keywords[j]) != NULL; j++) {
-			int rv;
-			if (kw[0] != token[0]) {
-				break;
-			}
-			rv = strcmp(token, keywords[j]);
-			if (rv == 0) {
-				found = j;
-				break;
-			} else if (rv < 0) {
-				// slight optimization saves searching
-				// many user defined symbols are just a single
-				// character long
-				break;
-			}
-		}
-	}
-	// this is where we handle some special token processing
-	switch (found) {
-	case 0: // not a keyword at all
-		if (valid[IDENTIFIER]) {
-			lexer->mark_end(lexer);
-			lexer->result_symbol = IDENTIFIER;
-			return (true);
-		}
-		break;
-	case K__EOF:
-		// end of file marker, eat it all - this is valid *everywhere*
-		while (lexer->lookahead) {
 			lexer->advance(lexer, false);
 		}
-		lexer->result_symbol = END_FILE;
-		return (true);
-	default:
-		if (valid[found]) {
-			lexer->result_symbol = found;
-			lexer->mark_end(lexer);
-			return (true);
+		if (isalnum(c) || (c == '_') || (c > 0x7f && !is_eol(c))) {
+			return (false);
 		}
-		break;
 	}
-	return (false);
+	// eat entire file
+	while (lexer->lookahead != 0) {
+		lexer->advance(lexer, false);
+	}
+
+	lexer->mark_end(lexer);
+	lexer->result_symbol = END_FILE;
+	return (true);
 }
 
 static bool
@@ -1043,10 +682,9 @@ tree_sitter_d_external_scanner_scan(
 		return (false);
 	}
 
-	// alphas, and underscore, or leading unicode (which we asssume is
-	// alpha) - BOM gets special treatment though
-	if (isalpha(c) || c == '_' || (c > 0x7f && c != 0xFEFF)) {
-		return (match_identifier(lexer, valid));
+	// either possibly __EOF__ or the special EOF character
+	if ((c == '_') || (c == '\x1A')) {
+		return (match_eof(lexer));
 	}
 
 	if (c == '.' || isdigit(c)) {
@@ -1058,6 +696,14 @@ tree_sitter_d_external_scanner_scan(
 	}
 	if (c == '"') { // double quoted string, always unambiguous
 		return (valid[L_DQSTRING] ? match_dq_string(lexer) : false);
+	}
+
+	if ((c == 'r') && (valid[L_RQSTRING])) {
+		lexer->advance(lexer, false);
+		if (lexer->lookahead == '"') {
+			return (match_raw_string(lexer, '"', L_RQSTRING));
+		}
+		return (false);
 	}
 
 	if (c == '`') { // raw string, also unambiguous
@@ -1082,16 +728,6 @@ tree_sitter_d_external_scanner_scan(
 		}
 		if (c == '+') {
 			return (match_nest_comment(lexer, valid));
-		}
-		return (false);
-	}
-
-	if (c == 0xFEFF) {
-		if (valid[BOM]) {
-			lexer->advance(lexer, true);
-			lexer->mark_end(lexer);
-			lexer->result_symbol = BOM;
-			return (true);
 		}
 		return (false);
 	}

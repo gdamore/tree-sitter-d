@@ -6,6 +6,7 @@
 //
 
 const PREC = {
+    QUALIFIED_ID: -20, //  we want pretty much everything else to be higher
     PAREN: -10,
     ASSIGNMENT: -1,
     CONDITIONAL: -2,
@@ -31,7 +32,6 @@ const PREC = {
     CALL: 16,
     SUBSCRIPT: 16,
     TEMPLATE: 17,
-    QUALIFIED_ID: 20,
     DEPRECATED: 21, // deprecated attribute,  paren following always is part of
     CONSTRUCTOR: 22, // also destructor
     POSTBLIT: 23,
@@ -653,7 +653,6 @@ module.exports = grammar({
             $.field_expression,
             seq(repeat($._type_ctor), $._basic_type, paren(optional($._arg_list))),
             $.index_expression,
-            $.slice_expression,
             paren(commaSep1($._expression)),
             seq($.scalar, '.', $.identifier),
             seq(paren($.type), '.', $.identifier),
@@ -672,25 +671,23 @@ module.exports = grammar({
 
 
         field_expression: $ => prec.left(PREC.POSTFIX, seq(
-            field('parent', $._expression), '.',
+            field('argument', $._expression), '.',
             field('member', $.identifier)
         )),
 
-        index_expression: $ => prec.left(PREC.SUBSCRIPT, seq(
-            field('parent', $._expression),
-            bracket(field('index', $._arg_list)),
-        )),
-
-        slice_expression: $ => prec.left(PREC.SUBSCRIPT, choice(
-            seq(field('parent', $._expression), bracket()),
-            seq(
-                field('parent', $._expression),
-                bracket(field('index', commaSep1Comma($._slice))))
-        )),
+        // also covers slicing (we renamed from slice,
+        // and deleted the old index expression as it was redundant)
+        index_expression: $ =>
+            prec.left(PREC.SUBSCRIPT,
+                seq(
+                    field('argument', $._expression),
+                    bracket(optional(commaSep1Comma($._slice)))),
+            ),
 
         _slice: $ => prec.left(PREC.SUBSCRIPT, choice(
-            $._expression,
-            seq($._expression, '..', $._expression)
+            field('index', $._expression),
+            field('range',
+                seq(field('start', $._expression), '..', field('end', $._expression)))
         )),
 
         assignment_expression: $ => prec.right(PREC.ASSIGNMENT, seq(
@@ -1177,7 +1174,6 @@ module.exports = grammar({
             seq('with',
                 paren(choice(
                     $._comma_expression,
-                    $._symbol,
                     $.template_instance
                 )),
                 $._scope_statement),
@@ -1585,17 +1581,9 @@ module.exports = grammar({
                 seq('!', paren(optional($._template_argument_list))),
                 seq('!', $._template_single_arg)),
 
-        template_argument: $ => choice($.type, $._symbol, $._expression),
+        template_argument: $ => choice($.type, $._expression),
 
         _template_argument_list: $ => commaSep1($.template_argument),
-
-        _symbol: $ => seq(optional('.'), $._symbol_tail),
-
-        _symbol_tail: $ =>
-            prec.left(choice(
-                seq($.identifier, optional(seq('.', $._symbol))),
-                seq($.template_instance, optional(seq('.', $._symbol)))
-            )),
 
         _template_single_arg: $ => choice(
             $.identifier,
@@ -1965,7 +1953,6 @@ module.exports = grammar({
     conflicts: $ => [
         [$._storage_class, $._attribute],
         [$._initializer, $._kv_pair],
-        [$._symbol_tail, $._conditional_expression],
         [$._variadic_arguments_attribute, $._parameter_storage_class],
         [$._shortened_function_body, $._function_contract],
         [$.block_statement, $._struct_initializer],

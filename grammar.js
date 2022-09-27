@@ -463,7 +463,7 @@ module.exports = grammar({
                 $.var_declarator,
                 seq(
                     $.var_declarator,
-                    optional($._template_parameters),
+                    optional($.template_parameters),
                     $.equal,
                     field('value', $._initializer)),
             ),
@@ -479,7 +479,7 @@ module.exports = grammar({
             field('variable', $.identifier),
             seq(
                 field('variable', $.identifier),
-                optional($._template_parameters),
+                optional($.template_parameters),
                 $.equal,
                 field('value', $._initializer)),
         ),
@@ -532,7 +532,7 @@ module.exports = grammar({
 
         _auto_assignment: $ => seq(
             field('variable', $.identifier),
-            optional($._template_parameters),
+            optional($.template_parameters),
             $._equal,
             field('value', $._initializer)),
 
@@ -549,17 +549,17 @@ module.exports = grammar({
 
         alias_assignment: $ => choice(
             seq($.identifier,
-                optional($._template_parameters),
+                optional($.template_parameters),
                 $._equal,
                 optional($._storage_classes),
                 $.type),
             seq($.identifier,
-                optional($._template_parameters),
+                optional($.template_parameters),
                 $._equal,
                 optional($._storage_classes),
                 $.function_literal),
             seq($.identifier,
-                optional($._template_parameters),
+                optional($.template_parameters),
                 $._equal,
                 $._basic_type,
                 $.parameters,
@@ -1591,7 +1591,7 @@ module.exports = grammar({
                 // ),
             ),
 
-        template_parameters: $ => $._template_parameters,
+        template_parameters: $ => $.template_parameters,
 
         //
         // Parameters
@@ -1755,11 +1755,11 @@ module.exports = grammar({
         _template_parameter: $ => choice(
             $._template_type_parameter,
             $._template_value_parameter,
-            // TODO: template_alias_parameter
+            $._template_alias_parameter,
             $._template_sequence_parameter,
         ),
 
-        _template_parameters: $ => paren($._template_parameter_list),
+        template_parameters: $ => paren($._template_parameter_list),
 
         _template_parameter_list: $ => commaSep1Comma($._template_parameter),
 
@@ -1781,10 +1781,35 @@ module.exports = grammar({
         _template_sequence_parameter: $ => seq($.identifier, '...'),
 
         //
+        // Template Alias Parameter
+        //
+        _template_alias_parameter: $ =>
+            choice(
+                seq('alias',
+                    $.identifier,
+                    optional($._template_alias_parameter_specialization),
+                    optional($._template_alias_parameter_default)),
+                seq('alias',
+                    $._basic_type,
+                    $._declarator,
+                    optional($._template_alias_parameter_specialization),
+                    optional($._template_alias_parameter_default))),
+
+        _template_alias_parameter_specialization: $ =>
+            prec(PREC.TEMPLATE, choice(
+                seq(':', $.type),
+                seq(':', $._conditional_expression))),
+
+        _template_alias_parameter_default: $ =>
+            prec(PREC.TEMPLATE, choice(
+                seq($._equal, $.type),
+                seq($._equal, $._conditional_expression))),
+
+        //
         // Class/Interface/Struct/Union Template Declaration
         //
         class_template_declaration: $ =>
-            seq('class', $.identifier, $._template_parameters, choice(
+            seq('class', $.identifier, $.template_parameters, choice(
                 ';',
                 seq(
                     optional($.constraint),
@@ -1797,7 +1822,7 @@ module.exports = grammar({
             )),
 
         interface_template_declaration: $ =>
-            seq('interface', $.identifier, $._template_parameters, choice(
+            seq('interface', $.identifier, $.template_parameters, choice(
                 ';',
                 seq(
                     optional($.constraint),
@@ -1807,13 +1832,13 @@ module.exports = grammar({
             )),
 
         struct_template_declaration: $ =>
-            seq('struct', $.identifier, $._template_parameters, choice(
+            seq('struct', $.identifier, $.template_parameters, choice(
                 ';',
                 seq(optional($.constraint), $._aggregate_body)
             )),
 
         union_template_declaration: $ =>
-            seq('union', $.identifier, $._template_parameters, choice(
+            seq('union', $.identifier, $.template_parameters, choice(
                 ';',
                 seq(optional($.constraint), $._aggregate_body)
             )),
@@ -1824,7 +1849,7 @@ module.exports = grammar({
         constructor_template: $ =>
             seq(
                 'this',
-                $._template_parameters,
+                $.template_parameters,
                 $.parameters,
                 optional($._member_function_attributes),
                 optional($.constraint),

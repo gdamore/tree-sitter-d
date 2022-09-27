@@ -300,9 +300,10 @@ module.exports = grammar({
          *
          */
 
-        module: $ => choice(
-            seq($.module_declaration, repeat($._decldef)),
-            repeat1($._decldef)),
+        module: $ =>
+            prec(-1, choice(
+                seq($.module_declaration, prec(-1, repeat($._decldef))),
+                repeat1($._decldef))),
 
         _decldef: $ => choice( // TODO: this is largely wrong
             $._attr_specifier,
@@ -311,7 +312,7 @@ module.exports = grammar({
             // TODO: $._destructor,
             // TODO: $._postblit,
             // TODO: $.invariant,
-            // TODO: $._unittest
+            $.unittest,
             $.alias_this,
             // TODO: $._static_dtor,
             // TODO: $._shared_static_dtor,
@@ -363,7 +364,8 @@ module.exports = grammar({
         //
         // Import Declarations
         //
-        import_declaration: $ => seq(optional('static'), 'import', $._import_list, ';'),
+        import_declaration: $ =>
+            seq(optional('static'), 'import', $._import_list, ';'),
 
         _import_list: $ => choice(
             prec.left(seq($._import, optional(seq(',', $._import_list)))),
@@ -397,6 +399,7 @@ module.exports = grammar({
             choice(
                 $._declaration_no_storage_class,
                 $._declaration_have_storage_class,
+                $._declaration_omit_statement,
             ),
 
         // when these declarations appear in a declarartion
@@ -410,10 +413,6 @@ module.exports = grammar({
                 $.struct_declaration,
                 $.union_declaration,
                 $.enum_declaration,
-                $.import_declaration,
-                // TODO: conditional_declaration,
-                // TODO: static_foreach_declaration,
-                $.static_assert,
             ),
 
         // these already storage classes, so to prevent conflicts
@@ -425,6 +424,19 @@ module.exports = grammar({
                 $.auto_declaration,
                 $.var_declarations,
                 $.alias_declaration, // alias assignments is special
+            ),
+
+        // these are declarations that we would prefer not to
+        // have in the embedded declaration statement, because
+        // there are other beter forms for the statements that they
+        // would conflict with.  Typically these are things that
+        // aren't actually declarations.
+        _declaration_omit_statement: $ =>
+            choice(
+                $.conditional_declaration,
+                $.import_declaration,
+                $.static_assert,
+                // TODO: static_foreach_declaration,
             ),
 
         // _aggregate_declaration is inlined above
@@ -481,7 +493,7 @@ module.exports = grammar({
         _storage_class: $ => prec.left(choice(
             $.linkage_attribute,
             $.align_attribute,
-            // TODO: at_attribute,
+            $._at_attribute,
             'deprecated',
             'enum',
             'static',
@@ -497,7 +509,6 @@ module.exports = grammar({
             'inout',
             'shared',
             '__gshared',
-            seq('@', 'property'),
             'nothrow',
             'pure',
             'ref'
@@ -646,39 +657,42 @@ module.exports = grammar({
         // 3.5 ATTRIBUTES
         //
 
-        align_attribute: $ => seq('align', optional(paren($._expression))),
+        align_attribute: $ =>
+            prec.left(seq('align', optional(paren($._expression)))),
 
         deprecated_attribute: $ =>
-            prec(PREC.DEPRECATED, seq('deprecated', optional(paren($._expression)))),
+            prec.left(PREC.DEPRECATED, seq('deprecated', optional(paren($._expression)))),
 
-        visibility_attribute: $ => choice(
-            'private',
-            'package',
-            seq('package', paren($._qualified_id)),
-            'protected',
-            'public',
-            'export',
-        ),
+        visibility_attribute: $ =>
+            prec.left(choice(
+                'private',
+                'package',
+                seq('package', paren($._qualified_id)),
+                'protected',
+                'public',
+                'export',
+            )),
 
-        user_defined_attribute: $ => choice(
-            seq('@', field('name', $.identifier)),
-            seq('@',
-                field('name', $.identifier),
-                paren(field('arguments', optional($._arg_list)))),
-            seq('@', field('template', $.template_instance)),
-            seq('@',
-                field('template', $.template_instance,
-                    paren(field('arguments', optional($._arg_list)))))
-        ),
+        user_defined_attribute: $ =>
+            prec.left(choice(
+                seq('@', field('name', $.identifier)),
+                seq('@',
+                    field('name', $.identifier),
+                    paren(field('arguments', optional($._arg_list)))),
+                seq('@', field('template', $.template_instance)),
+                seq('@',
+                    field('template', $.template_instance,
+                        paren(field('arguments', optional($._arg_list)))))
+            )),
 
         _attr_specifier: $ => prec.left(seq($._attribute, optional($._decl_block))),
 
-        _attribute: $ => prec.right(choice(
+        _attribute: $ => prec.left(choice(
             $.linkage_attribute,
             $.align_attribute,
             $.deprecated_attribute,
             $.visibility_attribute,
-            // TODO Pragma
+            $.pragma,
             'static',
             'extern',
             'abstract',
@@ -692,12 +706,23 @@ module.exports = grammar({
             'inout',
             'shared',
             '__gshared',
-            // TODO: AtAttribute
+            $._at_attribute,
             'nothrow', // function_attribute_kwd
             'pure', // function_attribute_kwd
             'ref',
             'return',
         )),
+
+        _at_attribute: $ => choice(
+            seq('@', 'disable'),
+            seq('@', 'nogc'),
+            seq('@', 'live'),
+            seq('@', 'property'),
+            seq('@', 'safe'),
+            seq('@', 'system'),
+            seq('@', 'trusted'),
+            $.user_defined_attribute,
+        ),
 
         _function_attribute_kwd: $ => choice('nothrow', 'pure'),
 
@@ -718,7 +743,8 @@ module.exports = grammar({
 
         _namespace_list: $ => commaSep1Comma($._conditional_expression),
 
-        _decl_block: $ => choice($._decldef, brace(repeat($._decldef))),
+        _decl_block: $ =>
+            prec(1, choice($._decldef, brace(repeat($._decldef)))),
 
         _arg_list: $ => commaSep1Comma($._expression),
 
@@ -1169,11 +1195,11 @@ module.exports = grammar({
             // mixin_statement
             $.foreach_range_statement,
             $.pragma_statement,
-            // conditional_statement
+            $.conditional_statement,
             // static_foreach_statement
             // template_mixin
-            // $.static_assert - already converted by declaration_statement
-            // $.import_declaration, - already covered by declaration_statement
+            $.static_assert,
+            $.import_declaration,
         ),
 
         _labeled_statement: $ => prec.left(seq('$identifier', ':', optional($._statement))),
@@ -1183,6 +1209,8 @@ module.exports = grammar({
 
         _expression_statement: $ => seq($._comma_expression, ';'),
 
+        // declaration_statement is special because it easily conflicts with
+        // other kinds of statements.
         _declaration_statement: $ =>
             choice(
                 seq(optional($._storage_classes), $._declaration_no_storage_class),
@@ -1301,10 +1329,11 @@ module.exports = grammar({
                 )),
                 $._scope_statement),
 
-        synchronized_statement: $ => choice(
-            seq('synchronized', $._scope_statement),
-            seq('synchronized', paren($._comma_expression), $._scope_statement)
-        ),
+        synchronized_statement: $ =>
+            prec.left(choice(
+                seq('synchronized', $._scope_statement),
+                seq('synchronized', paren($._comma_expression), $._scope_statement)
+            )),
 
         //
         // Try Statement
@@ -1590,8 +1619,7 @@ module.exports = grammar({
         //
         _function_attribute: $ => choice(
             $._function_attribute_kwd,
-            seq('@', 'property'),
-            // TODO: at_attribute
+            $._at_attribute,
         ),
 
         _member_function_attributes: $ => repeat1($._member_function_attribute),
@@ -1786,20 +1814,38 @@ module.exports = grammar({
          *
          */
 
-        // TODO: conditional_declaration
-        // TODO: conditional_statement
+        conditional_declaration: $ =>
+            prec.left(choice(
+                seq($.condition, $._decl_block),
+                seq($.condition, $._decl_block, 'else', $._decl_block),
+                seq($.condition, ':', repeat($._decldef)),
+                seq($.condition, $._decl_block, 'else', repeat($._decldef))
+            )),
+
+        conditional_statement: $ =>
+            prec.left(
+                seq(
+                    $.condition,
+                    $._no_scope_non_empty_statement,
+                    'else',
+                    $._no_scope_non_empty_statement)),
+
+        condition: $ => choice(
+            $.version_condition, $.debug_condition, $.static_if_condition),
 
         version_condition: $ =>
-            seq(
-                'version',
-                paren(choice($.int_literal, $.identifier, 'unittest', 'assert'))
-            ),
+            prec.left(
+                seq(
+                    'version',
+                    paren(choice($.int_literal, $.identifier, 'unittest', 'assert'))
+                )),
 
         version_specification: $ =>
             seq('version', $._equal, choice($.int_literal, $.identifier), ';'),
 
         debug_condition: $ =>
-            seq('debug', optional(paren(choice($.int_literal, $.identifier)))),
+            prec.left(
+                seq('debug', optional(paren(choice($.int_literal, $.identifier))))),
 
         debug_specification: $ =>
             seq('debug', $._equal, choice($.int_literal, $.identifier), ';'),
@@ -1813,6 +1859,26 @@ module.exports = grammar({
 
         static_assert: $ =>
             seq('static', 'assert', paren($._assert_arguments), ';'),
+
+        /**************************************************
+         *
+         * 3.17 TRAITS
+         *
+         */
+
+        /**************************************************
+         *
+         * 3.18 UNIT TESTS
+         *
+         */
+        unittest: $ => seq('unittest', $.block_statement),
+
+        /**************************************************
+         *
+         * 3.19 D X86 INLINE ASSEMBLER
+         *
+         */
+
     },
 
     conflicts: $ => [

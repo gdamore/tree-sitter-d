@@ -508,11 +508,11 @@ module.exports = grammar({
         //
         // Initializers
         //
-        _initializer: $ => choice(
+        _initializer: $ => prec.left(choice(
             $._expression,
             $._struct_initializer,
             // $.array_literal is already covered under _expression
-        ),
+        )),
 
         //
         // Auto Declaration
@@ -723,20 +723,24 @@ module.exports = grammar({
         //
         // 3.6 PRAGMAS
         //
-        pragma_declaraion: $ => choice(
-            seq($.pragma, ';'),
-            seq($.pragma, $._decl_block),
-        ),
+        pragma_declaraion: $ =>
+            choice(
+                seq($.pragma, ';'),
+                seq($.pragma, $._decl_block),
+            ),
 
-        pragma_stmt: $ => choice(
-            seq($.pragma, ';'),
-            // TODO: seq($.pragma, $.no_scope_stmt),
-        ),
+        pragma_statement: $ =>
+            choice(
+                // seq($.pragma, ';'), // already covered by no_scope_statement
+                seq($.pragma, $._no_scope_statement),
+            ),
 
-        pragma: $ => choice(
-            seq('pragma', paren($.identifier)),
-            seq('pragma', paren($.identifier, ',', $._arg_list)),
-        ),
+        pragma: $ =>
+            choice(
+                seq('pragma', paren($.identifier)),
+                seq('pragma', paren($.identifier, ',', $._arg_list)),
+            ),
+
 
         //
         // 3.7 EXPRESSIONS
@@ -807,7 +811,6 @@ module.exports = grammar({
             $.mixin_expression,
             $.new_expression,
             $.typeid_expression,
-            // TODO: call_expr, parenthesized expr
         )),
 
         ternary_expression: $ => prec.right(PREC.CONDITIONAL, seq(
@@ -1070,15 +1073,28 @@ module.exports = grammar({
 
         _kv_pair: $ => prec.left(seq(field('key', $._expression), ':', field('value', $._expression))),
 
+        //
+        // Function Literal
+        //
         function_literal: $ => choice(
-            // TODO: function function ...
-            // TODO: delegate ...
+            seq(
+                'function',
+                optional($._ref_auto_ref),
+                optional($.type),
+                // TODO: optional($._parameter_with_attributes),
+                $._func_literal_body2),
+            seq(
+                'delegate',
+                optional($._ref_auto_ref),
+                optional($.type),
+                // TODO: optional($._parameter_with_member_attributes),
+                $._func_literal_body2),
             // TODO: seq(optional(_ref_auto_ref), $_param_with_member_attrs, $._func_literal_body2
-            // TODO: block_statement
+            // TODO: $.block_statement,
             seq($.identifier, '=>', $._expression),
         ),
 
-        _ref_auto_ref: $ => seq(optional('auto'), 'ref)'),
+        _ref_auto_ref: $ => seq(optional('auto'), 'ref'),
 
         _func_literal_body2: $ => choice(
             seq('=>', $._expression),
@@ -1100,11 +1116,20 @@ module.exports = grammar({
         //
 
         _statement: $ => choice(
-            $._empty_statement,
+            $.empty_statement,
             $._non_empty_statement,
         ),
 
-        _empty_statement: $ => ';',
+        empty_statement: $ => ';',
+
+        _no_scope_non_empty_statement: $ =>
+            choice($._non_empty_statement, $.block_statement),
+
+        _no_scope_statement: $ => choice(
+            $.empty_statement,
+            $._non_empty_statement,
+            $.block_statement,
+        ),
 
         _non_empty_statement: $ => choice(
             $._non_empty_statement_no_case_no_default,
@@ -1115,7 +1140,7 @@ module.exports = grammar({
 
         _scope_statement: $ => choice(
             $._non_empty_statement,
-            $._block_statement,
+            $.block_statement,
         ),
 
         _non_empty_statement_no_case_no_default: $ => choice(
@@ -1141,7 +1166,7 @@ module.exports = grammar({
             // asm_statement
             // mixin_statement
             // foreach_range_stateement
-            // pragma_statement
+            $.pragma_statement,
             // conditional_statement
             // static_foreach_statement
             // static assert
@@ -1677,7 +1702,7 @@ module.exports = grammar({
         [$._variadic_arguments_attribute, $._parameter_storage_class],
         [$._shortened_function_body, $._function_contract],
         [$._missing_function_body, $.constructor_template],
-        //[$._conditional_expression, $.declarator_identifier],
+        [$.block_statement, $._struct_initializer],
     ],
 })
 

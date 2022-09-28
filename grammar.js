@@ -1,3 +1,13 @@
+/*
+ * Grammar for D code for use by Tree-Sitter.
+ *
+ * Copyright 2022 Garrett D'Amore
+ *
+ * Distributed under the MIT License.
+ * (See accompanying file LICENSE.txt or https://opensource.org/licenses/MIT)
+ * SPDX-License-Identifier: MIT
+ */
+
 //
 // Portions of this grammar were influenced by the C grammar for Tree Sitter,
 // at https://github.com/tree-sitter/tree-sitter-c/blob/master/grammar.js

@@ -3,9 +3,9 @@
  *
  * Copyright 2022 Garrett D'Amore
  *
- * Distributed under the Boost Software License, Version 1.0.
- * (See accompanying file LICENSE or https://www.boost.org/LICENSE_1_0.txt)
- * SPDX-License-Identifier: BSL-1.0
+ * Distributed under the MIT License.
+ * (See accompanying file LICENSE.txt or https://opensource.org/licenses/MIT)
+ * SPDX-License-Identifier: MIT
  */
 #include "tree_sitter/parser.h"
 #include <assert.h>

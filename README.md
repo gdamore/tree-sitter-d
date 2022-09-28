@@ -3,13 +3,10 @@ D Grammar for Tree Sitter
 
 This is a new start at a D grammar for Tree Sitter.
 
-It is still not generally useful for consumption, but represents a starting point.
-I'm working on extending this to support the grammar documented on dlang.org.
+This supports a subset of the grammar, and may be of some use while it
+is still in development.
 
-The scanner is very nearly complete, and is written in C.  This allows for us to
-properly handle nesting comments, and I have elected to implement a "complete" scanner,
-so that every D token is lexed by this scanner.  That might have been a mistake, but it
-ensures a few things -- for example keywords cannot be used for identifiers *anywhere*.
+I'm working on extending this to support the grammar documented on dlang.org.
 
 D is an incredibly complex (some might say too much so) language, and I'm still learning
 it.  So it's likely that there are bugs here in the grammar, and this also explains at

@@ -1,4 +1,12 @@
 ; highlights.scm
+;
+; Highlighting queries for D code for use by Tree-Sitter.
+;
+; Copyright 2022 Garrett D'Amore
+;
+; Distributed under the MIT License.
+; (See accompanying file LICENSE.txt or https://opensource.org/licenses/MIT)
+; SPDX-License-Identifier: MIT
 
 [
     "abstract"

@@ -246,12 +246,13 @@ match_eof(TSLexer *lexer)
 	int         l    = strlen(want);
 	int         c;
 
-	if (lexer->lookahead != '\x1a') { // 0x1A is always EOF
+	if ((c = lexer->lookahead) != '\x1a') { // 0x1A is always EOF
 		for (i = 0; i < l; i++) {
 			if (lexer->lookahead != want[i]) {
 				return (false);
 			}
 			lexer->advance(lexer, false);
+			c = lexer->lookahead;
 		}
 		if (isalnum(c) || (c == '_') || (c > 0x7f && !is_eol(c))) {
 			return (false);

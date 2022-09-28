@@ -192,6 +192,10 @@
     "cdouble"
     "creal"
     "void"
+    "string"
+    "noreturn"
+    "size_t"
+    "ptrdiff_t"
 ] @type
 
 (string_literal) @string

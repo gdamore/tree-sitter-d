@@ -516,7 +516,9 @@ module.exports = grammar({
             )),
 
         attribute_specifier: $ =>
-            prec.left(seq($._attribute, optional($._decl_block))),
+            prec.left(seq(choice(
+                seq($._attribute, ':'),
+                seq($._attribute, $._decl_block)))),
 
         _attribute: $ => prec.left(choice(
             $.linkage_attribute,

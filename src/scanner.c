@@ -25,10 +25,10 @@ enum TokenType {
 	SHEBANG,   // #!
 	L_INT,
 	L_FLOAT,
-	L_CHAR,     // 'c', or '\x12', or similar
-	L_DQSTRING, // "string" may include escapes
-	L_BQSTRING, // `string` (no escapes permitted)
-	L_RQSTRING, // r"string" (no escapes permitted)
+	L_CHAR,      // 'c', or '\x12', or similar
+	L_DQSTRING,  // "string" may include escapes
+	L_BQSTRING,  // `string` (no escapes permitted)
+	L_RQSTRING,  // r"string" (no escapes permitted)
 };
 
 static bool
@@ -332,7 +332,7 @@ match_block_comment(TSLexer *lexer, const bool *valid)
 		switch (state) {
 		case 0:
 			if (c == '*') {
-				state++;
+				state = 1;
 			}
 			break;
 		case 1:
@@ -342,8 +342,9 @@ match_block_comment(TSLexer *lexer, const bool *valid)
 				lexer->mark_end(lexer);
 				lexer->result_symbol = COMMENT;
 				return (true);
+			} else if (c != '*') {
+				state = 0;
 			}
-			state = 0;
 			break;
 		}
 	}
@@ -392,8 +393,7 @@ match_nest_comment(TSLexer *lexer, const bool *valid)
 }
 
 static bool
-match_number_suffix(
-    TSLexer *lexer, const bool *valid, bool is_float, bool no_suffix)
+match_number_suffix(TSLexer *lexer, const bool *valid, bool is_float)
 {
 	int  c;
 	bool seen_l = false;
@@ -404,7 +404,7 @@ match_number_suffix(
 	int  tok    = 0;
 	bool done   = false;
 
-	while (((c = lexer->lookahead) != 0) && (!no_suffix) && !done) {
+	while (((c = lexer->lookahead) != 0) && !done) {
 		switch (c) {
 		case 'u':
 		case 'U': // we can treat both u and U identically
@@ -495,8 +495,6 @@ match_number(TSLexer *lexer, const bool *valid)
 	bool has_dot   = false;
 	bool in_exp    = false;
 	bool was_dot   = false; // next must be a digit
-	bool result    = false;
-	bool no_suffix = false;
 
 	if (c == '.') {
 		lexer->advance(lexer, false);
@@ -507,7 +505,7 @@ match_number(TSLexer *lexer, const bool *valid)
 		// might apply from above).  Note that underscores are *not*
 		// permitted as the first character after the decimal point.
 		if (!isdigit(c)) {
-			return (result);
+			return (false);
 		}
 		has_dot = true;
 
@@ -566,18 +564,19 @@ match_number(TSLexer *lexer, const bool *valid)
 			// if we already have a decimal, or we haven't yet
 			// collected one, or we are in the exponent, then this
 			// dot is not part of our number.  (If we haven't seen
-			// a digit yet, then this will be a faield parse.)
+			// a digit yet, then this will be a failed parse.)
 			// also binary numbers don't support floating point.
 			if (!has_digit || has_dot || in_exp || is_bin) {
+				lexer->mark_end(lexer);
 				done = true;
 				break;
 			}
+			lexer->mark_end(lexer);
 			lexer->advance(lexer, false);
 			c = lexer->lookahead;
 			// if the next character is a valid digit (note that
 			// binary doesn't support this, then we're good
 			if (isdigit(c) || (is_hex && isxdigit(c))) {
-				lexer->mark_end(lexer);
 				has_dot = true;
 				continue;
 			}
@@ -587,15 +586,17 @@ match_number(TSLexer *lexer, const bool *valid)
 			// make it a floating point number. Note that lone
 			// trailing periods like 1. are nuts, but this is what
 			// DMD does.
-			if (!(isalnum(c) || c == '_' ||
-			        (c > 0x7f && !is_eol(c)))) {
-				lexer->mark_end(lexer);
-				has_dot = true;
+			if (isalnum(c) || c == '_' || c == '.' ||
+			    (c > 0x7f && !is_eol(c))) {
+				// its something like ._property or somesuch
+				// in that case we just want the original int,
+				// without the period.
+				lexer->result_symbol = L_INT;
+				return (valid[L_INT]);
 			}
-
-			no_suffix = true;
-			done      = true;
-			break;
+			lexer->result_symbol = L_FLOAT;
+			lexer->mark_end(lexer);
+			return (valid[L_FLOAT]);
 
 		case '_':
 			// an embedded (or possibly trailing) underscore.
@@ -638,8 +639,7 @@ match_number(TSLexer *lexer, const bool *valid)
 	if (!has_digit) {
 		return (false);
 	}
-	return (
-	    match_number_suffix(lexer, valid, has_dot || in_exp, no_suffix));
+	return (match_number_suffix(lexer, valid, has_dot || in_exp));
 }
 
 void *

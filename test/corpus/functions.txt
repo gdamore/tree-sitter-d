@@ -12,8 +12,7 @@ int f() { return 0; }
             (parameters)
             (function_body
                 (block_statement
-                    (return_statement
-                        (int_literal)
+                    (return_statement (expression (int_literal))
                     )
                 )
             )
@@ -36,7 +35,7 @@ int f(int c) { return c; }
                 (parameter (scalar) (var_declarator (identifier))))
             (function_body
                 (block_statement
-                    (return_statement (identifier))))
+                    (return_statement (expression (identifier)))))
         )
     )
 )
@@ -62,7 +61,7 @@ int f(int c, ...) { return c; }
             (function_body
                 (block_statement
                     (return_statement
-                        (identifier)
+                        (expression (identifier))
                     )
                 )
             )
@@ -87,7 +86,7 @@ int f(...) { return c; }
             (function_body
                 (block_statement
                     (return_statement
-                        (identifier)
+                        (expression (identifier))
                     )
                 )
             )
@@ -106,7 +105,7 @@ int f(int...) { return c; }
         (scalar)
         (identifier)
         (parameters (parameter (type (scalar)) (ellipses)))
-        (function_body (block_statement (return_statement (identifier)))))
+        (function_body (block_statement (return_statement (expression (identifier))))))
     )
 )
 
@@ -133,7 +132,7 @@ int f(int a, int b) @safe pure @myattr { return a+b; }
             (function_body
                 (block_statement
                     (return_statement
-                        (binary_expression (identifier) (identifier)))
+                        (expression (add_expression (identifier) (identifier))))
                 )
             )
         )

@@ -265,9 +265,9 @@ auto aa1 = [ "bob": 1, "sue": 2, "charlie": 3 ];
             (storage_class)
             (identifier)
             (assoc_array_literal
-                (string_literal) (int_literal)
-                (string_literal) (int_literal)
-                (string_literal) (int_literal)
+                (kv_pair (string_literal) (int_literal))
+                (kv_pair (string_literal) (int_literal))
+                (kv_pair (string_literal) (int_literal))
             )
         ))
     )

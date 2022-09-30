@@ -23,7 +23,6 @@ auto e = 456uL;
 Zeros
 ==================
 
-
 auto i1 = 0;
 auto i2 = 0U;
 auto i3 = 0u;
@@ -230,6 +229,20 @@ auto s10 = r"🥂"w;
         (var_declarations (auto_declaration (storage_class) (identifier) (string_literal)))
     )
 )
+
+==================
+Token Strings
+==================
+auto s1 = q{ int {""} /*comment*/ bob };
+---
+(source_file
+    (module
+        (var_declarations (auto_declaration (storage_class) (identifier)
+            (string_literal (token_string
+                (keyword)
+                (string_literal)
+                (comment)
+                (identifier)))))))
 
 ==================
 Arrays

@@ -47,7 +47,7 @@ module.exports = grammar({
 
     name: 'd',
 
-    // Some externals have trouble with references, if you don't 
+    // Some externals have trouble with references, if you don't
     // assign a symbolic name to them.  This is described in
     // https://github.com/tree-sitter/tree-sitter/issues/1887
     externals: $ => [
@@ -88,6 +88,7 @@ module.exports = grammar({
         $._basic_type,
         $.declarator,
         $.func_declarator_suffix,
+        $.struct_template_declaration,
     ],
 
     word: $ => $.identifier,
@@ -517,7 +518,7 @@ module.exports = grammar({
         //
         _initializer: $ => prec.left(choice(
             $._expression,
-            $._struct_initializer,
+            $.aggregate_initializer,
             'void',
             // $.array_literal is already covered under _expression
         )),
@@ -1440,8 +1441,8 @@ module.exports = grammar({
 
         struct_declaration: $ => choice(
             seq('struct', $.identifier, ';'),
-            seq('struct', $.identifier, $._aggregate_body),
-            seq('struct', $._aggregate_body), // anonymous struct
+            seq('struct', $.identifier, $.aggregate_body),
+            seq('struct', $.aggregate_body), // anonymous struct
             $.struct_template_declaration,
         ),
 
@@ -1449,22 +1450,26 @@ module.exports = grammar({
 
         union_declaration: $ => choice(
             seq('union', $.identifier, ';'),
-            seq('union', $.identifier, $._aggregate_body),
-            seq('union', $._aggregate_body), // anonymous union
+            seq('union', $.identifier, $.aggregate_body),
+            seq('union', $.aggregate_body), // anonymous union
             $.union_template_declaration,
         ),
 
         // AnonUnionDeclaration inlined above
 
-        _aggregate_body: $ => seq('{', repeat($._decldef), '}'),
+        aggregate_body: $ => seq('{', repeat($._decldef), '}'),
 
         //
         // Struct Initializer
         //
-        _struct_initializer: $ => seq('{', commaSep($._struct_member_initializer), '}'),
+        // renamed to aggregate initializer, as this is used for
+        // all aggregate types (classes, enums, interfaces, structs)
+        // also struct_member_initializers is inlined here
+        aggregate_initializer: $ =>
+            seq('{', optional(commaSep1Comma($.member_initializer)), '}'),
 
-        // struct_member_initializers inlined above
-        _struct_member_initializer: $ =>
+        // struct_member_initializer shortened to member_initializer
+        member_initializer: $ =>
             seq(optional(seq($.identifier, ':')), $._initializer),
 
         //
@@ -1496,7 +1501,7 @@ module.exports = grammar({
         class_declaration: $ =>
             choice(
                 seq('class', $.identifier, ';'),
-                seq('class', $.identifier, optional($._base_class_list), $._aggregate_body),
+                seq('class', $.identifier, optional($._base_class_list), $.aggregate_body),
                 $.class_template_declaration,
             ),
 
@@ -1547,7 +1552,7 @@ module.exports = grammar({
                 'class',
                 paren(optional($._arg_list)),
                 optional($._anon_base_class_list),
-                $._aggregate_body),
+                $.aggregate_body),
 
         _anon_base_class_list: $ =>
             seq($._super_class_or_interface, optional(seq(',', $._interfaces))),
@@ -1561,7 +1566,7 @@ module.exports = grammar({
         interface_declaration: $ =>
             choice(
                 seq('interface', $.identifier, ';'),
-                seq('interface', optional($._base_interface_list), $._aggregate_body),
+                seq('interface', optional($._base_interface_list), $.aggregate_body),
                 $.interface_template_declaration,
             ),
 
@@ -1870,11 +1875,11 @@ module.exports = grammar({
                 seq(
                     optional($.constraint),
                     optional($._base_class_list),
-                    $._aggregate_body),
+                    $.aggregate_body),
                 seq(
                     optional($._base_class_list),
                     optional($.constraint),
-                    $._aggregate_body),
+                    $.aggregate_body),
             )),
 
         interface_template_declaration: $ =>
@@ -1883,20 +1888,21 @@ module.exports = grammar({
                 seq(
                     optional($.constraint),
                     optional($._base_interface_list),
-                    $._aggregate_body),
-                seq($._base_interface_list, $.constraint, $._aggregate_body),
+                    alias($.aggregate_body, $.interface_body)),
+                seq($._base_interface_list, $.constraint, $.aggregate_body),
             )),
 
         struct_template_declaration: $ =>
-            seq('struct', $.identifier, $.template_parameters, choice(
-                ';',
-                seq(optional($.constraint), $._aggregate_body)
+            seq('struct', $.identifier, $.template_parameters,
+                choice(
+                    ';',
+                    seq(optional($.constraint), $.aggregate_body),
             )),
 
         union_template_declaration: $ =>
             seq('union', $.identifier, $.template_parameters, choice(
                 ';',
-                seq(optional($.constraint), $._aggregate_body)
+                seq(optional($.constraint), $.aggregate_body),
             )),
 
         //
@@ -2167,7 +2173,7 @@ module.exports = grammar({
         [$._initializer, $._kv_pair],
         [$.variadic_arguments_attribute, $.parameter_storage_class],
         [$._shortened_function_body, $._function_contract],
-        [$.block_statement, $._struct_initializer],
+        [$.block_statement, $.aggregate_initializer],
         [$._range_foreach, $._foreach_type_list],
         [$.storage_class, $.enum_declaration],
         [$.storage_class, $.synchronized_statement],

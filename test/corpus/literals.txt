@@ -285,3 +285,21 @@ auto aa1 = [ "bob": 1, "sue": 2, "charlie": 3 ];
         ))
     )
 )
+
+==================
+Trailing Period
+==================
+
+auto aa1 = 1.seconds;
+
+auto r = x[1..9];
+
+---
+(source_file
+    (module
+        (var_declarations
+            (auto_declaration (storage_class) (identifier) (field_expression (int_literal) (identifier))))
+        (var_declarations
+            (auto_declaration (storage_class) (identifier) (index_expression (identifier) (int_literal) (int_literal))))
+    )
+)

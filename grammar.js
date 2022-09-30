@@ -86,7 +86,6 @@ module.exports = grammar({
         $.identity_expression,
         $.power_expression,
         $._basic_type,
-        $.declarator_initializer,
         $.declarator,
         $.func_declarator_suffix,
     ],
@@ -454,12 +453,13 @@ module.exports = grammar({
                 $.auto_declaration,
             ),
 
-        _declarators: $ => choice(
-            $.declarator_initializer,
-            seq($.declarator_initializer, ',', $._declarator_identifier_list),
-        ),
+        _declarators: $ =>
+            choice(
+                $._declarator_initializer,
+                seq($._declarator_initializer, ',', $._declarator_identifier_list),
+            ),
 
-        declarator_initializer: $ =>
+        _declarator_initializer: $ =>
             seq($.var_declarator,
                 optional($.template_parameters),
                 optional(seq('=', field('value', $._initializer)))),

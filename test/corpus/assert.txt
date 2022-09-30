@@ -1,0 +1,46 @@
+==================
+Assert Expression
+==================
+
+void f() {
+	assert(0);
+}
+---
+(source_file (module
+	(func_declaration
+		(scalar)
+		(identifier)
+		(parameters)
+		(function_body
+			(block_statement
+				(assert_expression
+					(int_literal)
+				)
+			)
+		)
+	)
+))
+
+==================
+Assert Expression Multiple arguments
+==================
+
+void f() {
+	assert(0, "xyz");
+}
+---
+(source_file (module
+	(func_declaration
+		(scalar)
+		(identifier)
+		(parameters)
+		(function_body
+			(block_statement
+				(assert_expression
+					(int_literal)
+					(string_literal)
+				)
+			)
+		)
+	)
+))

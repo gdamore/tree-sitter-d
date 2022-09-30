@@ -1040,9 +1040,9 @@ module.exports = grammar({
         // Assert expression.
         //
         assert_expression: $ =>
-            prec(PREC.PRIMARY, seq('assert', paren($._assert_arguments))),
+            prec.left(seq('assert', paren($._assert_arguments))),
 
-        _assert_arguments: $ => commaSep1Comma($._expression),
+        _assert_arguments: $ => prec.left(commaSep1Comma($._expression)),
 
         //
         // Mixin expression.  The result may be an lvalue.

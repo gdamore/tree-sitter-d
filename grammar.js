@@ -630,10 +630,10 @@ module.exports = grammar({
         _type_suffix: $ =>
             prec.left(choice(
                 '*',
-                bracket(),
-                bracket($._expression),
-                bracket($._expression, '..', $._expression),
-                bracket($.type),
+                seq('[', ']'),
+                seq('[', $._expression, ']'),
+                seq('[', $._expression, '..', $._expression, ']'),
+                seq('[', $.type, ']'),
                 seq('delegate', $.parameters, optional($._member_function_attributes)),
                 seq('function', $.parameters, repeat($._function_attribute)),
             )),
@@ -641,7 +641,7 @@ module.exports = grammar({
         qualified_identifier: $ =>
             prec.left(choice(
                 $.template_instance,
-                seq($.identifier, optional(bracket($._expression)),
+                seq($.identifier, optional(seq('[', $._expression, ']')),
                     optional(seq('.', $.qualified_identifier))),
             )),
 
@@ -751,7 +751,7 @@ module.exports = grammar({
         _namespace_list: $ => commaSep1Comma($._conditional_expression),
 
         _decl_block: $ =>
-            choice($._decldef, brace(repeat($._decldef))),
+            choice($._decldef, seq('{', repeat($._decldef), '}')),
 
         _arg_list: $ =>
             prec.left(commaSep1Comma($._expression)),
@@ -890,7 +890,7 @@ module.exports = grammar({
             prec.left(PREC.SUBSCRIPT,
                 seq(
                     field('argument', $._expression),
-                    bracket(optional(commaSep1Comma($._slice)))),
+                    seq('[', optional(commaSep1Comma($._slice)), ']')),
             ),
 
         _slice: $ => prec.left(PREC.SUBSCRIPT, choice(
@@ -1059,7 +1059,7 @@ module.exports = grammar({
         new_expression: $ =>
             prec.left(PREC.PRIMARY, choice(
                 seq('new', $.type),
-                seq('new', $.type, bracket($._expression)),
+                seq('new', $.type, '[', $._expression, ']'),
                 seq('new', $.type, paren(optional($._arg_list))),
                 $.new_anon_class_expression,
             )),
@@ -1117,14 +1117,14 @@ module.exports = grammar({
             //'__VENDOR__'
         ),
 
-        array_literal: $ => bracket(commaSep($._array_member_init)),
+        array_literal: $ => seq('[', commaSep($._array_member_init), ']'),
 
         _array_member_init: $ => choice(
             field('value', $._initializer),
             seq(field('key', $._expression), ':', field('value', $._initializer)),
         ),
 
-        assoc_array_literal: $ => bracket(commaSep1($._kv_pair)),
+        assoc_array_literal: $ => seq('[', commaSep1($._kv_pair), ']'),
 
         _kv_pair: $ => prec.left(seq(field('key', $._expression), ':', field('value', $._expression))),
 
@@ -1240,7 +1240,7 @@ module.exports = grammar({
 
         _labeled_statement: $ => prec.left(seq('$identifier', ':', optional($._statement))),
 
-        block_statement: $ => brace(repeat($._statement)),
+        block_statement: $ => seq('{', repeat($._statement), '}'),
 
         _expression_statement: $ => seq($._comma_expression, ';'),
 
@@ -1424,7 +1424,7 @@ module.exports = grammar({
         // Asm Statement
         //
         asm_statement: $ =>
-            seq('asm', repeat($._function_attribute), brace($._asm_instruction_list)),
+            seq('asm', repeat($._function_attribute), '{', $._asm_instruction_list, '}'),
 
         //
         // Mixin Statement
@@ -1456,12 +1456,12 @@ module.exports = grammar({
 
         // AnonUnionDeclaration inlined above
 
-        _aggregate_body: $ => brace(repeat($._decldef)),
+        _aggregate_body: $ => seq('{', repeat($._decldef), '}'),
 
         //
         // Struct Initializer
         //
-        _struct_initializer: $ => brace(commaSep($._struct_member_initializer)),
+        _struct_initializer: $ => seq('{', commaSep($._struct_member_initializer), '}'),
 
         // struct_member_initializers inlined above
         _struct_member_initializer: $ =>
@@ -1577,13 +1577,13 @@ module.exports = grammar({
             choice(
                 seq('enum', $.identifier, $._enum_body),
                 seq('enum', $.identifier, ':', $.type, $._enum_body),
-                seq('enum', ':', $.type, brace($._enum_members)), // anonymous
+                seq('enum', ':', $.type, '{', $._enum_members, '}'), // anonymous
                 // NB: grammar also lists this with _enum_members, but
                 // that's just a degenerate case of this one.
                 seq('enum', '{', $._anonymous_enum_members, '}'),
             )),
 
-        _enum_body: $ => choice(brace($._enum_members), ';'),
+        _enum_body: $ => choice(seq('{', $._enum_members, '}'), ';'),
         _enum_members: $ => commaSep1Comma($.enum_member),
 
         _enum_member_attribute: $ =>
@@ -1774,7 +1774,9 @@ module.exports = grammar({
                 $.identifier,
                 $.template_parameters,
                 optional($.constraint),
-                brace(repeat($._decldef))),
+                '{',
+                repeat($._decldef),
+                '}'),
 
         //
         // Template Instance
@@ -1925,7 +1927,9 @@ module.exports = grammar({
                 $.identifier,
                 $.template_parameters,
                 optional($.constraint),
-                brace(repeat1($._decldef))),
+                '{',
+                repeat1($._decldef),
+                '}'),
 
         template_mixin: $ =>
             prec.left(seq(
@@ -2125,7 +2129,7 @@ module.exports = grammar({
                 prec.left(PREC.MULTIPLY, seq($.operand, '*', $.operand)),
                 prec.left(PREC.MULTIPLY, seq($.operand, '/', $.operand)),
                 prec.left(PREC.MULTIPLY, seq($.operand, '%', $.operand)),
-                prec.left(PREC.SUBSCRIPT, seq($.operand, bracket($.operand))),
+                prec.left(PREC.SUBSCRIPT, seq($.operand, '[', $.operand, ']')),
                 prec.left(PREC.UNARY, seq($._asm_type_prefix, 'ptr', $.operand)),
                 prec.left(PREC.UNARY, seq('offsetof', $.operand)),
                 prec.left(PREC.UNARY, seq('seg', $.operand)),
@@ -2221,12 +2225,4 @@ function commaSep(rule) {
 // paren acts like seq, but encloses in parentheses.
 function paren(...rules) {
     return seq('(', ...rules, ')')
-}
-
-function bracket(...rules) {
-    return seq('[', ...rules, ']')
-}
-
-function brace(...rules) {
-    return seq('{', ...rules, '}')
 }

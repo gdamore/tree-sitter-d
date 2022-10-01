@@ -1,0 +1,124 @@
+==================
+Import declaration
+==================
+module test.blah.bah;
+
+import garrett.damore;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (module_fqn (identifier) (identifier)))
+    )
+))
+
+==================
+Multiple imports
+==================
+module test.blah.bah;
+
+import garrett.damore, dcell.tables;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (module_fqn (identifier) (identifier)))
+        (import (module_fqn (identifier) (identifier)))
+    )
+))
+
+==================
+Multiple imports with alias
+==================
+module test.blah.bah;
+
+import garrett.damore, tabs = dcell.tables, dcell.terminfo;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (module_fqn (identifier) (identifier)))
+        (import (identifier) (module_fqn (identifier) (identifier)))
+        (import (module_fqn (identifier) (identifier)))
+    )
+))
+
+==================
+Import alias declaration
+==================
+module test.blah.bah;
+
+import garrett = garrett.damore;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (identifier) (module_fqn (identifier) (identifier)))
+    )
+))
+
+==================
+Import with binding
+==================
+module test.blah.bah;
+
+import garrett.damore : what = where;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (module_fqn (identifier) (identifier)))
+        (import_bind (identifier) (identifier))
+    )
+))
+
+==================
+Import with bindings
+==================
+module test.blah.bah;
+
+import garrett.damore : what = where, when = then;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (module_fqn (identifier) (identifier)))
+        (import_bind (identifier) (identifier))
+        (import_bind (identifier) (identifier))
+    )
+))
+
+==================
+Import alias with bindings
+==================
+module test.blah.bah;
+
+import garrett = garrett.damore : what = where, when = then;
+---
+(source_file (module
+    (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+    (import_declaration
+        (import (identifier) (module_fqn (identifier) (identifier)))
+        (import_bind (identifier) (identifier))
+        (import_bind (identifier) (identifier))
+    )
+))
+
+; the parser is buggy right now, reintroduce this later
+; ==================
+; Static import alias with bindings
+; ==================
+; module test.blah.bah;
+; 
+; static import garrett = garrett.damore : what = where, when = then;
+; ---
+; ; This test verifies that the static import binds at higher precedence
+; ; than the attribute specifier.  The actual syntax is ambiguous.
+; ; (source_file (module
+;     (module_declaration (module_fqn (identifier) (identifier) (identifier)))
+;     (import_declaration
+;         (import (identifier) (module_fqn (identifier) (identifier)))
+;         (import_bind (identifier) (identifier))
+;         (import_bind (identifier) (identifier))
+;     )
+; ))

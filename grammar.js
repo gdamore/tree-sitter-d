@@ -364,9 +364,12 @@ module.exports = grammar({
 
         //
         // Import Declarations
+        // Note that 'static import' is not provided for here, because it is
+        // ambiguous with the attribute_specifiers. Technically we probably
+        // prefer the static to be more tightly bound to the import, but for
+        // syntax tree analysis it probably does not matter much.
         //
-        import_declaration: $ =>
-            seq(optional('static'), 'import', $._import_list, ';'),
+        import_declaration: $ => seq('import', $._import_list, ';'),
 
         _import_list: $ => choice(
             seq($.import, optional(seq(',', $._import_list))),
@@ -488,7 +491,7 @@ module.exports = grammar({
         // Storage Classes
         //
         storage_class: $ =>
-            choice(
+            prec.right(choice(
                 $.linkage_attribute,
                 $.align_attribute,
                 $.at_attribute,
@@ -509,7 +512,7 @@ module.exports = grammar({
                 '__gshared',
                 'ref',
                 $._function_attribute_kwd,
-            ),
+            )),
 
         _storage_classes: $ => repeat1($.storage_class),
 
@@ -694,7 +697,10 @@ module.exports = grammar({
             )),
 
         attribute_specifier: $ =>
-            prec.left(seq($._attribute, choice(':', $._decl_block))),
+            prec.right(choice(
+                seq($._attribute, ':'),
+                seq($._attribute, $._decldef),
+                seq($._attribute, '{', repeat($._decldef), '}'))),
 
         _attribute: $ => prec.left(choice(
             $.linkage_attribute,

@@ -126,10 +126,10 @@ int f(int a, int b) @safe pure @myattr { return a+b; }
                 (parameter (scalar) (var_declarator (identifier)))
             )
             (member_function_attribute
-                (at_attribute))
+                (at_attribute (identifier)))
             (member_function_attribute)
             (member_function_attribute
-                (at_attribute (user_defined_attribute (identifier))))
+                (at_attribute (identifier)))
             (function_body
                 (block_statement
                     (return_statement

@@ -23,17 +23,17 @@ deprecated ("it is too old") module test.blah.bah;
     (module_declaration (deprecated_attribute (string_literal)) (module_fqn (identifier) (identifier) (identifier)))))
 
 ==================
-Module user-attribute
+Module at-attribute
 ==================
 @uda module test.blah.bah;
 ---
 (source_file (module
-    (module_declaration (user_defined_attribute (identifier)) (module_fqn (identifier) (identifier) (identifier)))))
+    (module_declaration (at_attribute (identifier)) (module_fqn (identifier) (identifier) (identifier)))))
 
 ==================
-Module user-attribute parameter
+Module at-attribute parameter
 ==================
 @uda("something") module test.blah.bah;
 ---
 (source_file (module
-    (module_declaration (user_defined_attribute (identifier) (string_literal)) (module_fqn (identifier) (identifier) (identifier)))))
+    (module_declaration (at_attribute (identifier) (string_literal)) (module_fqn (identifier) (identifier) (identifier)))))

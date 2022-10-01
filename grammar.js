@@ -346,21 +346,17 @@ module.exports = grammar({
     //
     // Module Declarations
     //
-    module_declaration: $ => seq(
-      repeat($._module_attribute),
-      'module',
-      field('name', $.module_fqn),
-      ';'),
-
-    _module_attribute: $ => choice(
-      $.deprecated_attribute,
-      $.user_defined_attribute,
-    ),
-
-    module_fqn: $ =>
+    module_declaration: $ =>
       seq(
-        field('package', repeat(seq($.identifier, '.'))),
-        field('name', $.identifier)),
+        // deprecated attribute can only appear once
+        optional($.at_attribute),
+        optional(seq($.deprecated_attribute, optional($.at_attribute))),
+        'module',
+        field('name', alias($._identifier_chain, $.module_fqn)),
+        ';'),
+
+    _identifier_chain: $ =>
+      seq($.identifier, repeat(seq('.', $.identifier))),
 
     //
     // Import Declarations
@@ -371,15 +367,19 @@ module.exports = grammar({
     //
     import_declaration: $ => seq('import', $._import_list, ';'),
 
-    _import_list: $ => choice(
-      seq($.import, optional(seq(',', $._import_list))),
-      $._import_bindings,
-    ),
+    _import_list: $ =>
+      choice(
+        seq($.import, optional(seq(',', $._import_list))),
+        $._import_bindings,
+      ),
 
-    import: $ => choice(
-      $.module_fqn,
-      seq(field('alias', $.identifier), '=', $.module_fqn),
-    ),
+    import: $ =>
+      choice(
+        alias($._identifier_chain, $.module_fqn),
+        seq(
+          field('alias', $.identifier),
+          '=',
+          alias($._identifier_chain, $.module_fqn))),
 
     _import_bindings: $ => seq($.import, ':', $._import_bind_list),
 
@@ -679,30 +679,13 @@ module.exports = grammar({
         'export',
       )),
 
-    user_defined_attribute: $ =>
-      prec.left(choice(
-        seq('@', '(', optional(field('arguments', $._arg_list)), ')'),
-        seq('@', field('name', $.identifier)),
-        seq('@',
-          field('name', $.identifier),
-          '(',
-          optional(field('arguments', $._arg_list)),
-          ')'),
-        seq('@', field('template', $.template_instance)),
-        seq('@',
-          field('template', $.template_instance,
-            '(',
-            optional(field('arguments', $._arg_list)),
-            ')'))
-      )),
-
     attribute_specifier: $ =>
       prec.right(choice(
         seq($._attribute, ':'),
         seq($._attribute, $._decldef),
         seq($._attribute, '{', repeat($._decldef), '}'))),
 
-    _attribute: $ => prec.left(choice(
+    _attribute: $ => prec.right(choice(
       $.linkage_attribute,
       $.align_attribute,
       $.deprecated_attribute,
@@ -727,16 +710,12 @@ module.exports = grammar({
       'return',
     )),
 
-    at_attribute: $ => choice(
-      seq('@', 'disable'),
-      seq('@', 'nogc'),
-      seq('@', 'live'),
-      seq('@', 'property'),
-      seq('@', 'safe'),
-      seq('@', 'system'),
-      seq('@', 'trusted'),
-      $.user_defined_attribute,
-    ),
+    at_attribute: $ =>
+      prec.left(choice(
+        seq('@', field('name', $.identifier)),
+        seq('@', field('name', $.identifier), '(', optional($._arg_list), ')'),
+        seq('@', '(', optional($._arg_list), ')'),
+        seq('@', $.template_instance))),
 
     _function_attribute_kwd: $ => choice('nothrow', 'pure'),
 
@@ -1600,8 +1579,7 @@ module.exports = grammar({
     _enum_member_attribute: $ =>
       choice(
         $.deprecated_attribute,
-        $.user_defined_attribute,
-        seq('@', 'disable'),
+        $.at_attribute,
       ),
 
     enum_member: $ =>
@@ -1684,7 +1662,7 @@ module.exports = grammar({
         ))),
 
     parameter_attributes: $ =>
-      prec.left(repeat1(choice($.parameter_storage_class, $.user_defined_attribute))),
+      prec.left(repeat1(choice($.parameter_storage_class, $.at_attribute))),
 
     parameter_storage_class: $ => choice(
       'auto',
@@ -2187,8 +2165,6 @@ module.exports = grammar({
     [$._arg_list, $._comma_expression],
     [$.ref_auto_ref, $.storage_class],
     [$.ref_auto_ref, $.parameter_storage_class],
-    [$._module_attribute, $._attribute],
-    [$._module_attribute, $.at_attribute],
     [$.deprecated_attribute, $.storage_class],
     [$.parameter_storage_class, $.type],
     [$.type_ctor, $.variadic_arguments_attribute],

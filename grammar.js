@@ -373,6 +373,7 @@ module.exports = grammar({
         $._import_bindings,
       ),
 
+    // libdparse calls this single_import
     import: $ =>
       choice(
         alias($._identifier_chain, $.module_fqn),
@@ -381,9 +382,7 @@ module.exports = grammar({
           '=',
           alias($._identifier_chain, $.module_fqn))),
 
-    _import_bindings: $ => seq($.import, ':', $._import_bind_list),
-
-    _import_bind_list: $ => commaSep1($.import_bind),
+    _import_bindings: $ => seq($.import, ':', commaSep1($.import_bind)),
 
     import_bind: $ => seq($.identifier, optional(seq('=', $.identifier))),
 
@@ -1194,7 +1193,7 @@ module.exports = grammar({
 
     _non_empty_statement_no_case_no_default: $ =>
       choice(
-        $._labeled_statement,
+        // TODO : BUSTED $.labeled_statement,
         $._expression_statement,
         $._declaration_statement,
         $.if_statement,
@@ -1224,7 +1223,7 @@ module.exports = grammar({
 
     // mixin_statement is already covered by expression_statement
 
-    _labeled_statement: $ => prec.left(seq('$identifier', ':', optional($._statement))),
+    labeled_statement: $ => prec.left(seq($.identifier, ':', optional($._statement))),
 
     block_statement: $ => seq('{', repeat($._statement), '}'),
 

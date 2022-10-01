@@ -1,0 +1,9 @@
+==================
+Mixin declaration
+==================
+
+mixin(x, "=", 1, ";");
+---
+(source_file (module
+	(mixin_declaration (identifier) (string_literal) (int_literal) (string_literal))
+))

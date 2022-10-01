@@ -7,7 +7,7 @@ int f() { return 0; }
 (source_file
     (module
         (func_declaration
-            (scalar)
+            (builtin_type)
             (identifier)
             (parameters)
             (function_body
@@ -30,10 +30,10 @@ int f(int c) { return c; }
 (source_file
     (module
         (func_declaration
-            (scalar)
+            (builtin_type)
             (identifier)
             (parameters
-                (parameter (scalar) (var_declarator (identifier))))
+                (parameter (builtin_type) (var_declarator (identifier))))
             (function_body
                 (block_statement
                     (return_statement (identifier))))
@@ -50,11 +50,11 @@ int f(int c, ...) { return c; }
 (source_file
     (module
         (func_declaration
-            (scalar)
+            (builtin_type)
             (identifier)
             (parameters
                 (parameter
-                    (scalar)
+                    (builtin_type)
                     (var_declarator (identifier))
                 )
                 (ellipses)
@@ -79,7 +79,7 @@ int f(...) { return c; }
 (source_file
     (module
         (func_declaration
-            (scalar)
+            (builtin_type)
             (identifier)
             (parameters
                 (ellipses)
@@ -103,9 +103,9 @@ int f(int...) { return c; }
 ---
 (source_file (module
     (func_declaration
-        (scalar)
+        (builtin_type)
         (identifier)
-        (parameters (parameter (type (scalar)) (ellipses)))
+        (parameters (parameter (type (builtin_type)) (ellipses)))
         (function_body (block_statement (return_statement (identifier)))))
     )
 )
@@ -119,11 +119,11 @@ int f(int a, int b) @safe pure @myattr { return a+b; }
 (source_file
     (module
         (func_declaration
-            (scalar)
+            (builtin_type)
             (identifier)
             (parameters
-                (parameter (scalar) (var_declarator (identifier)))
-                (parameter (scalar) (var_declarator (identifier)))
+                (parameter (builtin_type) (var_declarator (identifier)))
+                (parameter (builtin_type) (var_declarator (identifier)))
             )
             (member_function_attribute
                 (at_attribute (identifier)))

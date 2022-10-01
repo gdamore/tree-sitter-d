@@ -18,7 +18,7 @@ struct s {
 
 ---
 (source_file (module (struct_declaration (identifier)
-	(aggregate_body (var_declarations (scalar) (var_declarator (identifier))))
+	(aggregate_body (var_declarations (builtin_type) (var_declarator (identifier))))
 )))
 
 ==================
@@ -33,8 +33,8 @@ struct s {
 ---
 (source_file (module (struct_declaration (identifier)
 	(aggregate_body
-		(var_declarations (scalar) (var_declarator (identifier)))
-		(var_declarations (scalar) (var_declarator (identifier)))
+		(var_declarations (builtin_type) (var_declarator (identifier)))
+		(var_declarations (builtin_type) (var_declarator (identifier)))
 	)
 )))
 

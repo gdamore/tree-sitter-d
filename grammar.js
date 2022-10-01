@@ -580,12 +580,11 @@ module.exports = grammar({
     type: $ =>
       prec.left(seq(repeat($.type_ctor), $._basic_type, repeat($._type_suffix))),
 
-
     type_ctor: $ => choice('const', 'immutable', 'inout', 'shared'),
 
     _basic_type: $ =>
       choice(
-        $.scalar,
+        $.builtin_type,
         seq('.', $.qualified_identifier),
         $.qualified_identifier,
         $.typeof,
@@ -603,32 +602,34 @@ module.exports = grammar({
 
     _vector: $ => seq('__vector', paren($.type)),
 
-    scalar: $ => choice( // aka fundamental type
-      'bool',
-      'byte',
-      'ubyte',
-      'char',
-      'short',
-      'ushort',
-      'int',
-      'uint',
-      'long',
-      'ulong',
-      'cent', // deprecated
-      'ucent', // deprecated
-      'wchar',
-      'dchar',
-      'float',
-      'double',
-      'real',
-      'ifloat', // deprecated
-      'idouble', // deprecated
-      'ireal', // deprecated
-      'cfloat', // deprecated
-      'cdouble', // deprecated
-      'creal', // deprecated
-      'void'
-    ),
+    // aka fundamental type
+    builtin_type: $ =>
+      choice(
+        'bool',
+        'byte',
+        'ubyte',
+        'char',
+        'short',
+        'ushort',
+        'int',
+        'uint',
+        'long',
+        'ulong',
+        'cent', // deprecated
+        'ucent', // deprecated
+        'wchar',
+        'dchar',
+        'float',
+        'double',
+        'real',
+        'ifloat', // deprecated
+        'idouble', // deprecated
+        'ireal', // deprecated
+        'cfloat', // deprecated
+        'cdouble', // deprecated
+        'creal', // deprecated
+        'void'
+      ),
 
     _type_suffix: $ =>
       prec.left(choice(
@@ -897,7 +898,7 @@ module.exports = grammar({
           seq('.', $.template_instance),
           seq(paren($.type), '.', $.identifier),
           seq(paren($.type), '.', $.template_instance),
-          seq($.scalar, '.', $.identifier),
+          seq($.builtin_type, '.', $.identifier),
           paren($._comma_expression),
         )
       )),
@@ -1828,7 +1829,7 @@ module.exports = grammar({
 
     _template_single_arg: $ => choice(
       $.identifier,
-      $.scalar,
+      $.builtin_type,
       $.char_literal,
       $.string_literal,
       $.int_literal,
@@ -2175,7 +2176,7 @@ module.exports = grammar({
     opcode: $ => choice($.identifier, 'int', 'in', 'out'),
 
     _asm_type_prefix: $ =>
-      choice('near', 'far', 'word', 'dword', 'qword', $.scalar),
+      choice('near', 'far', 'word', 'dword', 'qword', $.builtin_type),
     _asm_primary: $ => choice(
       $.int_literal,
       $.float_literal,
@@ -2189,7 +2190,7 @@ module.exports = grammar({
       choice(
         $.identifier,
         seq($.identifier, '.', $._dot_identifier),
-        seq($.scalar, '.', $.identifier),
+        seq($.builtin_type, '.', $.identifier),
       ),
   },
 
@@ -2237,7 +2238,7 @@ module.exports = grammar({
     [$.qualified_identifier, $._primary_expression, $.template_instance],
     [$.field_expression, $._primary_expression, $.template_instance],
     [$._decl_block, $.conditional_declaration],
-    [$._initializer, $.scalar],
+    [$._initializer, $.builtin_type],
   ],
 })
 

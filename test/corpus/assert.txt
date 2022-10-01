@@ -8,7 +8,7 @@ void f() {
 ---
 (source_file (module
 	(func_declaration
-		(scalar)
+		(builtin_type)
 		(identifier)
 		(parameters)
 		(function_body
@@ -31,7 +31,7 @@ void f() {
 ---
 (source_file (module
 	(func_declaration
-		(scalar)
+		(builtin_type)
 		(identifier)
 		(parameters)
 		(function_body

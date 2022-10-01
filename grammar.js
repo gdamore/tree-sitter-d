@@ -519,7 +519,7 @@ module.exports = grammar({
     // Initializers
     //
     _initializer: $ => prec.left(choice(
-      $._expression,
+      $._expr,
       $.aggregate_initializer,
       'void',
       // $.array_literal is already covered under _expression
@@ -634,8 +634,8 @@ module.exports = grammar({
       prec.left(choice(
         '*',
         seq('[', ']'),
-        seq('[', $._expression, ']'),
-        seq('[', $._expression, '..', $._expression, ']'),
+        seq('[', $._expr, ']'),
+        seq('[', $._expr, '..', $._expr, ']'),
         seq('[', $.type, ']'),
         seq('delegate', $.parameters, optional($._member_function_attributes)),
         seq('function', $.parameters, repeat($._function_attribute)),
@@ -644,7 +644,7 @@ module.exports = grammar({
     qualified_identifier: $ =>
       prec.left(choice(
         $.template_instance,
-        seq($.identifier, optional(seq('[', $._expression, ']')),
+        seq($.identifier, optional(seq('[', $._expr, ']')),
           optional(seq('.', $.qualified_identifier))),
       )),
 
@@ -652,7 +652,7 @@ module.exports = grammar({
     // Typeof
     //
     typeof: $ => choice(
-      seq('typeof', paren(commaSep1($._expression))),
+      seq('typeof', paren(commaSep1($._expr))),
       seq('typeof', paren('return')),
     ),
 
@@ -663,10 +663,10 @@ module.exports = grammar({
     //
 
     align_attribute: $ =>
-      prec.left(seq('align', optional(paren($._expression)))),
+      prec.left(seq('align', optional(paren($._expr)))),
 
     deprecated_attribute: $ =>
-      seq('deprecated', optional(paren($._expression))),
+      seq('deprecated', optional(paren($._expr))),
 
     visibility_attribute: $ =>
       prec.left(choice(
@@ -739,7 +739,7 @@ module.exports = grammar({
       choice($._decldef, seq('{', repeat($._decldef), '}')),
 
     _arg_list: $ =>
-      prec.left(commaSep1Comma($._expression)),
+      prec.left(commaSep1Comma($._expr)),
 
     //
     // 3.6 PRAGMAS
@@ -768,12 +768,44 @@ module.exports = grammar({
     //
 
     // in statements, most uses of expressions can use comma form
-    _comma_expression: $ => prec.left(commaSep1($._expression)),
+    _comma_expression: $ => prec.left(commaSep1($._expr)),
+
+    // formally this is AssignExpression, but we use a different
+    // structure.  This is just a single expression term, and
+    // cannot be used in a comma expression. Expression is
+    // used where comma separated expressions are valid. 
+    _expr: $ =>
+      prec.left(
+        choice(
+          $._left_expression,
+          'true',
+          'false',
+          'null',
+          'this',
+          'super',
+          '$',
+          $.int_literal,
+          $.float_literal,
+          $.char_literal,
+          prec.left(repeat1($.string_literal)),
+          $.array_literal,
+          $.assoc_array_literal,
+          $.typeof,
+          $.special_keyword,
+          $.function_literal,
+          $.assert_expression,
+          $.import_expression,
+          $.is_expression,
+          $.special_keyword,
+          paren($._comma_expression),
+          // TODO: _traits_expression
+        )),
 
     // this is basically "AssignExpression", but we have taken the liberty
     // to separate out things that are *necesarily* unable to appear on the
     // left hand side of an assignment expression.  The things that *can*
     // do that, are in the _left_expression.
+    /*
     _expression: $ => prec.left(choice(
       $._left_expression,
       'true',
@@ -798,6 +830,7 @@ module.exports = grammar({
       paren($._comma_expression),
       // TODO: _traits_expression
     )),
+    */
 
     // Pretty much anything can be assigned to in D, because
     // of operator overloading.  Keywords and literals are the exception.
@@ -831,20 +864,20 @@ module.exports = grammar({
     )),
 
     ternary_expression: $ => prec.right(PREC.CONDITIONAL, seq(
-      field('condition', $._expression),
+      field('condition', $._expr),
       '?',
-      field('consequence', $._expression),
+      field('consequence', $._comma_expression),
       ':',
-      field('alternative', $._expression))),
+      field('alternative', $._expr))),
 
 
     field_expression: $ => prec.left(PREC.POSTFIX, seq(
-      field('argument', $._expression), '.',
+      field('argument', $._expr), '.',
       field('member', choice($.identifier, $.template_instance, $.new_expression))
     )),
 
     call_expression: $ => prec.left(PREC.CALL, seq(
-      field('function', $._expression),
+      field('function', $._expr),
       '(',
       field('arguments', optional($._arg_list)),
       ')'
@@ -874,14 +907,14 @@ module.exports = grammar({
     index_expression: $ =>
       prec.left(PREC.SUBSCRIPT,
         seq(
-          field('argument', $._expression),
+          field('argument', $._expr),
           seq('[', optional(commaSep1Comma($._slice)), ']')),
       ),
 
     _slice: $ => prec.left(PREC.SUBSCRIPT, choice(
-      field('index', $._expression),
+      field('index', $._expr),
       field('range',
-        seq(field('start', $._expression), '..', field('end', $._expression)))
+        seq(field('start', $._expr), '..', field('end', $._expr)))
     )),
 
     assignment_expression: $ => prec.right(PREC.ASSIGNMENT, seq(
@@ -892,89 +925,89 @@ module.exports = grammar({
           '+=', '-=', '*=', '/=', '%=', '&=', '|=',
           '^=', '~=', '<<=', '>>=', '>>>=', '^^=',
         )),
-      field('right', $._expression))),
+      field('right', $._expr))),
 
     pointer_expression: $ => prec.left(PREC.CAST, seq(
       field('operator', choice('*', '&')),
-      field('argument', $._expression)
+      field('argument', $._expr)
     )),
 
     relational_expression: $ => prec.left(PREC.RELATIONAL, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', choice('>', '>=', '<', '<=')),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     equality_expression: $ => prec.left(PREC.EQUAL, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', choice('==', '!=')),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     shift_expression: $ => prec.right(PREC.SHIFT, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', choice('>>', '>>>', '<<')),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     add_expression: $ => prec.right(PREC.ADD, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', choice('+', '-')),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     multiply_expression: $ => prec.right(PREC.MULTIPLY, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', choice('*', '/', '%')),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     concat_expression: $ => prec.right(PREC.CONCAT, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '~'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     logical_and_expression: $ => prec.right(PREC.LOGICAL_AND, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '&&'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     logical_or_expression: $ => prec.right(PREC.LOGICAL_OR, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '||'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     inclusive_or_expression: $ => prec.right(PREC.INCLUSIVE_OR, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '|'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     exclusive_or_expression: $ => prec.right(PREC.EXCLUSIVE_OR, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '^'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     bitwise_and_operation: $ => prec.right(PREC.BITWISE_AND, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '&'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     identity_expression: $ => prec.right(PREC.IDENTITY, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', seq(optional('!'), choice('is', 'in'))),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     power_expression: $ => prec.right(PREC.POWER, seq(
-      field('left', $._expression),
+      field('left', $._expr),
       field('operation', '^^'),
-      field('right', $._expression)
+      field('right', $._expr)
     )),
 
     binary_expression: $ => choice(
@@ -995,31 +1028,42 @@ module.exports = grammar({
 
     prefix_expression: $ => prec.right(PREC.POSTFIX, seq(
       field('operator', choice('++', '--')),
-      field('argument', $._expression),
+      field('operand', $._expr),
     )),
 
     postfix_expression: $ => prec.right(PREC.POSTFIX, seq(
-      field('argument', $._expression),
+      field('operand', $._expr),
       field('operator', choice('++', '--')),
     )),
 
     unary_expression: $ => prec.left(PREC.UNARY, seq(
       field('operator', choice('~', '+', '-', '!')),
-      field('operand', $._expression),
+      field('operand', $._expr),
     )),
 
-    cast_expression: $ => prec.left(PREC.CAST, choice(
-      seq('cast', paren($.type), field('operand', $._expression)),
-      seq('cast', paren(repeat($.type_ctor)), $._expression),
-    )),
+    cast_expression: $ =>
+      prec.left(PREC.CAST, choice(
+        seq('cast', '(', $.type, ')', field('operand', $._expr)),
+        seq('cast', '(', $.cast_qualifier, ')', $._expr),
+      )),
 
-    delete_expression: $ => prec.right(PREC.CAST, seq(
-      'delete', $._expression,
-    )),
+    // these are only allowed in specific combinations
+    cast_qualifier: $ =>
+      choice(
+        'const',
+        seq('const', 'shared'),
+        'immutable',
+        'inout',
+        seq('inout', 'shared'),
+        'shared',
+        seq('shared', 'const'),
+        seq('shared', 'inout')),
 
-    throw_expression: $ => prec.right(PREC.THROW, seq(
-      'throw', $._expression,
-    )),
+    delete_expression: $ =>
+      prec.right(PREC.CAST, seq('delete', $._expr)),
+
+    throw_expression: $ =>
+      prec.right(PREC.THROW, seq('throw', $._expr)),
 
     //
     // Assert expression.
@@ -1027,7 +1071,7 @@ module.exports = grammar({
     assert_expression: $ =>
       prec.left(seq('assert', paren($._assert_arguments))),
 
-    _assert_arguments: $ => prec.left(commaSep1Comma($._expression)),
+    _assert_arguments: $ => prec.left(commaSep1Comma($._expr)),
 
     //
     // Mixin expression.  The result may be an lvalue.
@@ -1039,12 +1083,12 @@ module.exports = grammar({
     // Import expression - evaluates to a string literal.
     //
     import_expression: $ =>
-      prec.left(PREC.PRIMARY, seq('import', paren($._expression))),
+      prec.left(PREC.PRIMARY, seq('import', paren($._expr))),
 
     new_expression: $ =>
       prec.left(PREC.PRIMARY, choice(
         seq('new', $.type),
-        seq('new', $.type, '[', $._expression, ']'),
+        seq('new', $.type, '[', $._expr, ']'),
         seq('new', $.type, paren(optional($._arg_list))),
         $.new_anon_class_expression,
       )),
@@ -1052,7 +1096,7 @@ module.exports = grammar({
     typeid_expression: $ =>
       prec.left((PREC.PRIMARY, choice(
         seq('typeid', paren($.type)),
-        seq('typeid', paren($._expression))
+        seq('typeid', paren($._expr))
       ))),
 
     is_expression: $ =>
@@ -1106,12 +1150,12 @@ module.exports = grammar({
 
     _array_member_init: $ => choice(
       field('value', $._initializer),
-      seq(field('key', $._expression), ':', field('value', $._initializer)),
+      seq(field('key', $._expr), ':', field('value', $._initializer)),
     ),
 
     assoc_array_literal: $ => seq('[', commaSep1($._kv_pair), ']'),
 
-    _kv_pair: $ => prec.left(seq(field('key', $._expression), ':', field('value', $._expression))),
+    _kv_pair: $ => prec.left(seq(field('key', $._expr), ':', field('value', $._expr))),
 
     //
     // Function Literal
@@ -1134,7 +1178,7 @@ module.exports = grammar({
           $._parameter_with_member_attributes,
           $._func_literal_body2),
         $.block_statement,
-        seq($.identifier, '=>', $._expression),
+        seq($.identifier, '=>', $._expr),
       ),
 
     _parameter_with_attributes: $ =>
@@ -1146,7 +1190,7 @@ module.exports = grammar({
     ref_auto_ref: $ => seq(optional('auto'), 'ref'),
 
     _func_literal_body2: $ => choice(
-      seq('=>', $._expression),
+      seq('=>', $._expr),
       $._specified_function_body,
     ),
 
@@ -1244,7 +1288,7 @@ module.exports = grammar({
         optional(seq('else', field('else', $._scope_statement))))),
 
     _if_condition: $ => choice(
-      $._expression,
+      $._expr,
       seq('auto', $.identifier, '=', $._comma_expression),
       seq('scope', $.identifier, '=', $._comma_expression),
       seq(repeat1($.type_ctor), $.identifier, '=', $._comma_expression),
@@ -1339,7 +1383,7 @@ module.exports = grammar({
 
     case_range_statement: $ =>
       prec.left(
-        seq('case', $._expression, ':', '..', 'case', $._expression,
+        seq('case', $._expr, ':', '..', 'case', $._expr,
           optional($._scope_statement_list))),
 
     default_statement: $ =>
@@ -1585,12 +1629,12 @@ module.exports = grammar({
       seq(
         repeat($._enum_member_attribute),
         $.identifier,
-        optional(seq('=', $._expression))
+        optional(seq('=', $._expr))
       ),
 
     _anonymous_enum_member: $ => choice(
       $.enum_member,
-      seq($.type, '=', $._expression),
+      seq($.type, '=', $._expr),
     ),
 
     _anonymous_enum_members: $ => commaSep1Comma($._anonymous_enum_member),
@@ -1655,9 +1699,9 @@ module.exports = grammar({
       prec.left(seq(optional($.parameter_attributes),
         choice(
           seq($._basic_type, $.declarator, optional($.ellipses)),
-          seq($._basic_type, $.declarator, '=', $._expression),
+          seq($._basic_type, $.declarator, '=', $._expr),
           seq($.type, optional($.ellipses)),
-          seq($.type, '=', $._expression)
+          seq($.type, '=', $._expr)
         ))),
 
     parameter_attributes: $ =>
@@ -1716,7 +1760,7 @@ module.exports = grammar({
       seq(repeat($._function_contract), optional('do'), $.block_statement),
 
     _shortened_function_body: $ =>
-      seq(optional($._in_out_contract_expressions), '=>', $._expression, ';'),
+      seq(optional($._in_out_contract_expressions), '=>', $._expr, ';'),
 
     _missing_function_body: $ =>
       seq(repeat($._function_contract), ';'),
@@ -1778,7 +1822,7 @@ module.exports = grammar({
         paren(optional($._template_argument_list)),
         $._template_single_arg))),
 
-    template_argument: $ => choice($.type, $._expression),
+    template_argument: $ => choice($.type, $._expr),
 
     _template_argument_list: $ => commaSep1Comma($.template_argument),
 
@@ -1820,7 +1864,7 @@ module.exports = grammar({
         $._basic_type,
         $.declarator,
         optional(seq(':', $._conditional_expression)),
-        optional(seq('=', choice($._expression, $.special_keyword)))),
+        optional(seq('=', choice($._expr, $.special_keyword)))),
 
     _template_sequence_parameter: $ => seq($.identifier, '...'),
 
@@ -1982,7 +2026,7 @@ module.exports = grammar({
       seq('debug', '=', choice($.int_literal, $.identifier), ';'),
 
     static_if_condition: $ =>
-      seq('static', 'if', paren($._expression)),
+      seq('static', 'if', paren($._expr)),
 
     _static_foreach: $ => choice(
       seq('static', $._aggregate_foreach),
@@ -2006,7 +2050,7 @@ module.exports = grammar({
      */
     traits_expression: $ => seq('__traits', $.traits_keyword, $.traits_arguments),
     traits_arguments: $ =>
-      prec.left(commaSep1(choice($._expression, $.type))),
+      prec.left(commaSep1(choice($._expr, $.type))),
     traits_keyword: $ =>
       choice(
         'isAbstractClass',
@@ -2152,6 +2196,7 @@ module.exports = grammar({
   // It is unfortunate, but many constructs in D require look-ahead
   // to resolve conflicts.
   conflicts: $ => [
+    [$.type_ctor, $.cast_qualifier],
     [$.storage_class, $._attribute],
     [$._initializer, $._kv_pair],
     [$.variadic_arguments_attribute, $.parameter_storage_class],
@@ -2173,7 +2218,7 @@ module.exports = grammar({
     [$.function_literal, $._no_scope_statement],
     [$.function_literal, $.default_statement],
     [$.function_literal, $.scope_guard_statement],
-    [$.type, $._expression],
+    [$.type, $._expr],
     [$.type, $._conditional_expression],
     [$.postblit, $._missing_function_body],
     [$.storage_class, $._attribute, $.constructor, $.destructor],
@@ -2181,7 +2226,7 @@ module.exports = grammar({
     [$.destructor, $._missing_function_body],
     [$.var_declarator, $._func_declarator],
     [$.parameter, $._template_value_parameter],
-    [$._expression, $._template_value_parameter],
+    [$._expr, $._template_value_parameter],
     [$._left_expression, $._template_value_parameter],
     [$._left_expression, $._template_alias_parameter_specialization],
     [$.qualified_identifier, $._conditional_expression],

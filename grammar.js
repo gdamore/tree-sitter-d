@@ -697,7 +697,7 @@ module.exports = grammar({
             )),
 
         attribute_specifier: $ =>
-            prec.right(choice(
+            prec.left(choice(
                 seq($._attribute, ':'),
                 seq($._attribute, $._decldef),
                 seq($._attribute, '{', repeat($._decldef), '}'))),

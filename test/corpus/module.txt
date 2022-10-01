@@ -1,7 +1,39 @@
 ==================
-Module Declaration
+Module declaration
 ==================
 module test.blah.bah;
 ---
 (source_file (module
     (module_declaration (module_fqn (identifier) (identifier) (identifier)))))
+
+==================
+Module deprecated
+==================
+deprecated module test.blah.bah;
+---
+(source_file (module
+    (module_declaration (deprecated_attribute) (module_fqn (identifier) (identifier) (identifier)))))
+
+==================
+Module deprecated reason
+==================
+deprecated ("it is too old") module test.blah.bah;
+---
+(source_file (module
+    (module_declaration (deprecated_attribute (string_literal)) (module_fqn (identifier) (identifier) (identifier)))))
+
+==================
+Module user-attribute
+==================
+@uda module test.blah.bah;
+---
+(source_file (module
+    (module_declaration (user_defined_attribute (identifier)) (module_fqn (identifier) (identifier) (identifier)))))
+
+==================
+Module user-attribute parameter
+==================
+@uda("something") module test.blah.bah;
+---
+(source_file (module
+    (module_declaration (user_defined_attribute (identifier) (string_literal)) (module_fqn (identifier) (identifier) (identifier)))))

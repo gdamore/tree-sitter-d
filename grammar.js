@@ -669,16 +669,6 @@ module.exports = grammar({
     deprecated_attribute: $ =>
       seq('deprecated', optional(paren($._expr))),
 
-    visibility_attribute: $ =>
-      prec.left(choice(
-        'private',
-        'package',
-        seq('package', paren($.qualified_identifier)),
-        'protected',
-        'public',
-        'export',
-      )),
-
     attribute_specifier: $ =>
       prec.right(choice(
         seq($._attribute, ':'),
@@ -689,8 +679,13 @@ module.exports = grammar({
       $.linkage_attribute,
       $.align_attribute,
       $.deprecated_attribute,
-      $.visibility_attribute,
       $.pragma,
+        'private',
+        'package',
+        seq('package', '(', $.qualified_identifier, ')'),
+        'protected',
+        'public',
+        'export',
       'static',
       'extern',
       'abstract',

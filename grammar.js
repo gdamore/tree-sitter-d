@@ -1340,20 +1340,14 @@ module.exports = grammar({
 
     _foreach_type: $ =>
       seq(
-        repeat($._foreach_type_attribute),
-        choice(
-          seq($._basic_type, $.declarator),
-          $.identifier,
-          seq('alias', $.identifier))
-      ),
+        repeat(choice('ref', 'alias', 'enum', $.type_ctor)),
+         optional($.type),
+         $.identifier),
 
     _aggregate_foreach: $ =>
       seq(
         choice('foreach', 'foreach_reverse'),
         paren($._foreach_type_list, ';', $._comma_expression)),
-
-
-    _foreach_type_attribute: $ => choice('enum', 'ref', 'scope', $.type_ctor),
 
     //
     // Foreach Range Statement
@@ -2239,6 +2233,7 @@ module.exports = grammar({
     [$.field_expression, $._primary_expression, $.template_instance],
     [$._decl_block, $.conditional_declaration],
     [$._initializer, $.builtin_type],
+    [$._foreach_type, $.type],
   ],
 })
 

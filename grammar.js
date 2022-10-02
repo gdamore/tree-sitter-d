@@ -328,7 +328,7 @@ module.exports = grammar({
       $.postblit,
       $.invariant,
       $.unittest,
-      $.alias_this,
+      $.alias_this_declaration,
       $.debug_specification,
       $.version_specification,
       $.template_declaration,
@@ -352,10 +352,10 @@ module.exports = grammar({
         optional($.at_attribute),
         optional(seq($.deprecated_attribute, optional($.at_attribute))),
         'module',
-        field('name', alias($._identifier_chain, $.module_fqn)),
+        field('name', alias($.identifier_chain, $.module_fqn)),
         ';'),
 
-    _identifier_chain: $ =>
+    identifier_chain: $ =>
       seq($.identifier, repeat(seq('.', $.identifier))),
 
     //
@@ -376,11 +376,11 @@ module.exports = grammar({
     // libdparse calls this single_import
     import: $ =>
       choice(
-        alias($._identifier_chain, $.module_fqn),
+        alias($.identifier_chain, $.module_fqn),
         seq(
           field('alias', $.identifier),
           '=',
-          alias($._identifier_chain, $.module_fqn))),
+          alias($.identifier_chain, $.module_fqn))),
 
     _import_bindings: $ => seq($.import, ':', commaSep1($.import_bind)),
 
@@ -680,12 +680,12 @@ module.exports = grammar({
       $.align_attribute,
       $.deprecated_attribute,
       $.pragma,
-        'private',
-        'package',
-        seq('package', '(', $.qualified_identifier, ')'),
-        'protected',
-        'public',
-        'export',
+      'private',
+      'package',
+      seq('package', '(', $.identifier_chain, ')'),
+      'protected',
+      'public',
+      'export',
       'static',
       'extern',
       'abstract',
@@ -1336,8 +1336,8 @@ module.exports = grammar({
     _foreach_type: $ =>
       seq(
         repeat(choice('ref', 'alias', 'enum', $.type_ctor)),
-         optional($.type),
-         $.identifier),
+        optional($.type),
+        $.identifier),
 
     _aggregate_foreach: $ =>
       seq(
@@ -1560,7 +1560,7 @@ module.exports = grammar({
     //
     // Alias This
     //
-    alias_this: $ => seq('alias', $.identifier, 'this', ';'),
+    alias_this_declaration: $ => seq('alias', $.identifier, 'this', ';'),
 
     //
     // NewAnonClassExpression

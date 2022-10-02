@@ -2166,21 +2166,16 @@ module.exports = grammar({
 
     _asm_type_prefix: $ =>
       choice('near', 'far', 'word', 'dword', 'qword', $.builtin_type),
-    _asm_primary: $ => choice(
-      $.int_literal,
-      $.float_literal,
-      $._dot_identifier, // also stands in for registers for now
-      '__LOCAL_SIZE',
-      '$',
-      'this',
-    ),
-
-    _dot_identifier: $ =>
-      choice(
-        $.identifier,
-        seq($.identifier, '.', $._dot_identifier),
-        seq($.builtin_type, '.', $.identifier),
-      ),
+    _asm_primary: $ =>
+      prec(PREC.PRIMARY, choice(
+        $.int_literal,
+        $.float_literal,
+        $.string_literal,
+        $.identifier_chain, // also stands in for registers for now
+        '__LOCAL_SIZE',
+        '$',
+        'this',
+      )),
   },
 
   // It is unfortunate, but many constructs in D require look-ahead

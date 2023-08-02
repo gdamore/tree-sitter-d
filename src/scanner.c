@@ -7,6 +7,7 @@
  * (See accompanying file LICENSE.txt or https://opensource.org/licenses/MIT)
  * SPDX-License-Identifier: MIT
  */
+#define _XOPEN_SOURCE
 #include "tree_sitter/parser.h"
 #include <assert.h>
 #include <ctype.h>

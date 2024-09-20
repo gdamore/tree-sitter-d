@@ -66,7 +66,7 @@ class U : int, float , __vector(int[3]) {}
         (type
           (int)
           (expression
-            (int_literal)))))
+            (num_literal)))))
     (aggregate_body)))
 
 ================================================================================

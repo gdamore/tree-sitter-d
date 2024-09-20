@@ -47,7 +47,7 @@ alias n1 = extern int[6];
       (type
         (int)
         (expression
-          (int_literal))))))
+          (num_literal))))))
 
 ================================================================================
 Alias initializer with function type
@@ -336,7 +336,7 @@ alias g_t = align(8) _gg_t[NREG];
         (align_attribute
           (align)
           (expression
-            (int_literal))))
+            (num_literal))))
       (type
         (identifier)
         (expression

@@ -171,4 +171,4 @@ auto u1 = U(asInt: 0x3F800000);
         (named_argument
           (identifier)
           (expression
-            (int_literal)))))))
+            (num_literal)))))))

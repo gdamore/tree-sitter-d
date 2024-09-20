@@ -20,9 +20,9 @@ int f() {
           (asm)
           (asm_inline
             (identifier)
-            (int_literal)
-            (int_literal)
-            (int_literal))
+            (num_literal)
+            (num_literal)
+            (num_literal))
           (comment))))))
 
 ================================================================================

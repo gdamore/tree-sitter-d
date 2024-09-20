@@ -44,10 +44,10 @@ enum X { x = 1, y = 2 }
     (identifier)
     (enum_member
       (identifier)
-      (int_literal))
+      (num_literal))
     (enum_member
       (identifier)
-      (int_literal))))
+      (num_literal))))
 
 ================================================================================
 Enum with missing body
@@ -130,7 +130,7 @@ enum { x = 1 }
     (enum)
     (enum_member
       (identifier)
-      (int_literal))))
+      (num_literal))))
 
 ================================================================================
 Anonymous enum typed values
@@ -146,7 +146,7 @@ enum { int x = 1 }
       (type
         (int))
       (identifier)
-      (int_literal))))
+      (num_literal))))
 
 ================================================================================
 Anonymous enum mixed
@@ -167,12 +167,12 @@ enum {
       (type
         (int))
       (identifier)
-      (int_literal))
+      (num_literal))
     (enum_member
       (identifier))
     (enum_member
       (identifier)
-      (int_literal))))
+      (num_literal))))
 
 ================================================================================
 Anonymous enum with UDAs

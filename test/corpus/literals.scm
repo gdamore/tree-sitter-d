@@ -15,27 +15,27 @@ auto e = 456uL;
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal)))
+    (num_literal)))
 
 ================================================================================
 Zeros
@@ -61,7 +61,7 @@ auto i13 = 0b0;
 auto i14 = 0B0;
 
 // floating point
-auto f1 = 0.;
+auto f1 = 0.0;
 auto f2 = 0.0;
 auto f3 = .0;
 auto f4 = 0e0;
@@ -72,13 +72,13 @@ auto f8 = 0x0p-0;
 auto f9 = 0x0p+0;
 
 // type suffixes
-auto f10 = 0.0i;
-auto f11 = 0i;
+auto f10 = 0.0L;
+auto f11 = 0L;
 auto f12 = 0F;
 auto f13 = 0.0f;
 
 // with exponents
-auto f14 = 0.0e1i;
+auto f14 = 0.0e1L;
 auto f15 = 0x0p20f;
 
 --------------------------------------------------------------------------------
@@ -88,165 +88,165 @@ auto f15 = 0x0p20f;
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (int_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal)))
+    (num_literal)))
 
 ================================================================================
 Floats
 ================================================================================
 
-auto f1 = 123. ;
+auto f1 = 123.0 ;
 auto f2 = .123 ;
 auto f3 = 12.345;
 auto f4 = 12.3L;
-auto f5 = 456i;
+auto f5 = 0456L;
 auto f6 = 456f;
 auto f7 = 456F;
-auto f8 = 456Fi;
+auto f8 = 456L;
 auto f9 = 1_000_000.0;
 
 // exponents
@@ -265,88 +265,88 @@ auto e8 = 0x12P30F;
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (comment)
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal))
+    (num_literal))
   (auto_declaration
     (storage_class
       (auto))
     (identifier)
-    (float_literal)))
+    (num_literal)))
 
 ================================================================================
 Token Strings
@@ -382,9 +382,9 @@ auto a1 = [ 1, 2, 3 ];
       (auto))
     (identifier)
     (array_literal
-      (int_literal)
-      (int_literal)
-      (int_literal))))
+      (num_literal)
+      (num_literal)
+      (num_literal))))
 
 ================================================================================
 Associative Arrays
@@ -403,15 +403,15 @@ auto aa1 = [ "bob": 1, "sue": 2, "charlie": 3 ];
       (expression
         (string_literal
           (quoted_string)))
-      (int_literal)
+      (num_literal)
       (expression
         (string_literal
           (quoted_string)))
-      (int_literal)
+      (num_literal)
       (expression
         (string_literal
           (quoted_string)))
-      (int_literal))))
+      (num_literal))))
 
 ================================================================================
 Trailing Period
@@ -429,7 +429,7 @@ auto r = x[1..9];
       (auto))
     (identifier)
     (property_expression
-      (int_literal)
+      (num_literal)
       (identifier)))
   (auto_declaration
     (storage_class
@@ -439,9 +439,9 @@ auto r = x[1..9];
       (identifier)
       (index
         (expression
-          (int_literal))
+          (num_literal))
         (expression
-          (int_literal))))))
+          (num_literal))))))
 
 ================================================================================
 Simple delimited string
@@ -547,4 +547,4 @@ int b = 0xb___011__11_;
       (int))
     (declarator
       (identifier)
-      (int_literal))))
+      (num_literal))))

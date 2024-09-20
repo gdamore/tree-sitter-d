@@ -101,12 +101,12 @@ Module multiple attributes
         (identifier)
         (arguments
           (expression
-            (int_literal))))
+            (num_literal))))
       (at_attribute
         (identifier)
         (arguments
           (expression
-            (int_literal))))
+            (num_literal))))
       (module)
       (module_fqn
         (identifier)

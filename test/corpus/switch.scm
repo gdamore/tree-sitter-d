@@ -128,4 +128,4 @@ int f() {
                 (int))
               (declarator
                 (identifier)
-                (int_literal)))))))))
+                (num_literal)))))))))

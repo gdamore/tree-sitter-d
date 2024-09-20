@@ -15,7 +15,7 @@ mixin(x, "=", 1, ";");
         (string_literal
           (quoted_string)))
       (expression
-        (int_literal))
+        (num_literal))
       (expression
         (string_literal
           (quoted_string))))))

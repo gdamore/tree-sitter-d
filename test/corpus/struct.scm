@@ -75,7 +75,7 @@ auto s = { 0, "x" };
     (identifier)
     (aggregate_initializer
       (member_initializer
-        (int_literal))
+        (num_literal))
       (member_initializer
         (string_literal
           (quoted_string))))))
@@ -95,7 +95,7 @@ auto s = { 0, "x", };
     (identifier)
     (aggregate_initializer
       (member_initializer
-        (int_literal))
+        (num_literal))
       (member_initializer
         (string_literal
           (quoted_string))))))
@@ -116,7 +116,7 @@ auto s = { zero: 0, name: "x" };
     (aggregate_initializer
       (member_initializer
         (identifier)
-        (int_literal))
+        (num_literal))
       (member_initializer
         (identifier)
         (string_literal
@@ -138,7 +138,7 @@ auto s = { zero: 0, name: "x", };
     (aggregate_initializer
       (member_initializer
         (identifier)
-        (int_literal))
+        (num_literal))
       (member_initializer
         (identifier)
         (string_literal

@@ -40,7 +40,7 @@ unittest {
               (type
                 (char)
                 (expression
-                  (int_literal))))))))))
+                  (num_literal))))))))))
 
 ================================================================================
 New anonymous class no args
@@ -71,7 +71,7 @@ unittest
                 (int))
               (declarator
                 (identifier)
-                (int_literal)))))))))
+                (num_literal)))))))))
 
 ================================================================================
 New anonymous class args
@@ -94,7 +94,7 @@ unittest {
               (class)
               (arguments
                 (expression
-                  (int_literal)))
+                  (num_literal)))
               (aggregate_body
                 (constructor
                   (this)

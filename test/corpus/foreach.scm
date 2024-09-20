@@ -192,9 +192,9 @@ void f() {
               (int))
             (identifier))
           (expression
-            (int_literal))
+            (num_literal))
           (expression
-            (int_literal))
+            (num_literal))
           (scope_statement
             (block_statement)))))))
 

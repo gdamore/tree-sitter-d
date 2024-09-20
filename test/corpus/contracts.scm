@@ -51,4 +51,4 @@ class C
             (return_statement
               (return)
               (expression
-                (int_literal)))))))))
+                (num_literal)))))))))

@@ -119,7 +119,7 @@ int[3] z;
     (type
       (int)
       (expression
-        (int_literal)))
+        (num_literal)))
     (declarator
       (identifier))))
 
@@ -174,7 +174,7 @@ Z[4].Z[] z;
     (type
       (identifier)
       (expression
-        (int_literal))
+        (num_literal))
       (identifier))
     (declarator
       (identifier))))
@@ -205,7 +205,7 @@ void f()
               (type
                 (float)
                 (expression
-                  (int_literal)))))
+                  (num_literal)))))
           (enum_member
             (identifier)
             (primary_expression
@@ -214,5 +214,5 @@ void f()
                 (type
                   (float)
                   (expression
-                    (int_literal))))
+                    (num_literal))))
               (identifier))))))))

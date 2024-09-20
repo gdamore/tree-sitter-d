@@ -32,12 +32,12 @@ unittest
               (binary_expression
                 (equal_expression
                   (identifier)
-                  (int_literal))))))
+                  (num_literal))))))
         (manifest_constant
           (enum)
           (manifest_declarator
             (identifier)
-            (int_literal)))
+            (num_literal)))
         (else)
         (conditional_declaration
           (condition
@@ -48,7 +48,7 @@ unittest
                 (binary_expression
                   (equal_expression
                     (identifier)
-                    (int_literal))))))
+                    (num_literal))))))
           (conditional_declaration
             (condition
               (static_if_condition
@@ -58,7 +58,7 @@ unittest
                   (binary_expression
                     (equal_expression
                       (identifier)
-                      (int_literal))))))
+                      (num_literal))))))
             (variable_declaration
               (type
                 (char))
@@ -71,7 +71,7 @@ unittest
                 (char))
               (declarator
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (else)
           (conditional_declaration
             (condition
@@ -82,13 +82,13 @@ unittest
                   (binary_expression
                     (equal_expression
                       (identifier)
-                      (int_literal))))))
+                      (num_literal))))))
             (variable_declaration
               (type
                 (int))
               (declarator
                 (identifier)
-                (int_literal)))
+                (num_literal)))
             (else)
             (conditional_declaration
               (condition
@@ -99,15 +99,15 @@ unittest
                     (binary_expression
                       (equal_expression
                         (identifier)
-                        (int_literal))))))
+                        (num_literal))))))
               (manifest_constant
                 (enum)
                 (manifest_declarator
                   (identifier)
-                  (int_literal)))
+                  (num_literal)))
               (else)
               (manifest_constant
                 (enum)
                 (manifest_declarator
                   (identifier)
-                  (int_literal))))))))))
+                  (num_literal))))))))))

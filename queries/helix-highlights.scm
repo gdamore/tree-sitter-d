@@ -231,8 +231,7 @@
 (goto_statement (goto) @keyword (identifier) @label)
 
 (string_literal) @string
-(int_literal) @constant.numeric.integer
-(float_literal) @constant.numeric.float
+(num_literal) @constant.numeric
 (char_literal) @constant.character
 (identifier) @variable
 (at_attribute) @attribute

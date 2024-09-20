@@ -21,7 +21,7 @@ void f() {
               (assert)
               (assert_arguments
                 (expression
-                  (int_literal))))))))))
+                  (num_literal))))))))))
 
 ================================================================================
 Assert Expression Multiple arguments
@@ -46,7 +46,7 @@ void f() {
               (assert)
               (assert_arguments
                 (expression
-                  (int_literal))
+                  (num_literal))
                 (expression
                   (string_literal
                     (quoted_string)))))))))))
@@ -74,7 +74,7 @@ void f() {
             (assert)
             (assert_arguments
               (expression
-                (int_literal))
+                (num_literal))
               (expression
                 (string_literal
                   (quoted_string))))))))))

@@ -9,8 +9,7 @@
 ; SPDX-License-Identifier: MIT
 
 (string_literal) @string
-(int_literal) @number
-(float_literal) @number
+(num_literal) @number
 (char_literal) @number
 (identifier) @variable
 (at_attribute) @property

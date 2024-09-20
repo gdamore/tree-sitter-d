@@ -20,8 +20,7 @@
 (super)
 ] @keyword.self
 
-(int_literal) @value.number
-(float_literal) @value.number
+(num_literal) @value.number
 (char_literal) @value.number ; not sure what is best for this
 (special_keyword) @value.symbols
 (escape_sequence) @value.entity
@@ -253,10 +252,10 @@
 	(cfloat)
 ] @invalid ; these types are deprecated
 
-(debug_condition (debug) (int_literal) @invalid) ; deprecated in 2.101
-(debug_specification (debug) (int_literal) @invalid) ; deprecated in 2.101
-(version_condition (version) (int_literal) @invalid) ; deprecated in 2.101
-(version_specification (version) (int_literal) @invalid) ; deprecated in 2.101
+(debug_condition (debug) (num_literal) @invalid) ; deprecated in 2.101
+(debug_specification (debug) (num_literal) @invalid) ; deprecated in 2.101
+(version_condition (version) (num_literal) @invalid) ; deprecated in 2.101
+(version_specification (version) (num_literal) @invalid) ; deprecated in 2.101
 (version_condition (identifier) @value.symbol)
 
 (module_fqn) @processing ; this is a crummy workaround since we don't have anything for imports

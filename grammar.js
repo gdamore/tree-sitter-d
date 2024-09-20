@@ -11,14 +11,7 @@
 module.exports = grammar({
   name: "d",
 
-  externals: ($) => [
-    $.end_file,
-    $.comment,
-    $.directive,
-    $.int_literal,
-    $.float_literal,
-    $._string,
-  ],
+  externals: ($) => [$.end_file, $.comment, $.directive, $._string],
 
   extras: ($) => [
     /[ \t\r\n\u2028\u2029]/,
@@ -103,6 +96,36 @@ module.exports = grammar({
     //
     identifier: (_$) => /[_\p{XID_Start}][\p{XID_Continue}]*/,
 
+    _int_literal: ($) =>
+      token(
+        choice(
+          // integers
+          /[0-9][0-9_]*(u|U|L|Lu|LU|uL|UL)?/,
+          /0[Bb][01_]*[01][01_]*(u|U|L|Lu|LU|uL|UL)?/,
+          /0[Xx][0-9A-Fa-f_]*[0-9A-Fa-f][0-9A-Fa-f_]*(u|U|L|Lu|LU|uL|UL)?/,
+        ),
+      ),
+
+    num_literal: ($) =>
+      token(
+        choice(
+          // integer literals
+          /[0-9][0-9_]*(u|U|L|Lu|LU|uL|UL)?/,
+          /0[Bb][01_]*[01][01_]*(u|U|L|Lu|LU|uL|UL)?/,
+          /0[Xx][0-9A-Fa-f_]*[0-9A-Fa-f][0-9A-Fa-f_]*(u|U|L|Lu|LU|uL|UL)?/,
+          // floating point, not doing imaginaries
+          /0[Xx][0-9A-Fa-f][0-9A-Fa-f_][fFL]*/,
+          /0[Xx][0-9A-Fa-f][0-9A-Fa-f_]*\.[0-9A-Fa-f][0-9A-Fa-f_]*[fFL]?/,
+          /0[Xx][0-9A-Fa-f][0-9A-Fa-f_]*\.[0-9A-Fa-f][0-9A-Fa-f_]*[pP][-\+]?[0-9_]*[0-9][0-9_]*[fFL]?/,
+          /0[Xx][0-9A-Fa-f][0-9A-Fa-f_]*[pP][-\+]?[0-9_]*[0-9][0-9_]*[fFL]?/,
+          /\.[0-9][0-9_]*[fFL]?/,
+          /[0-9][0-9_]*[fFL]/,
+          /[0-9][0-9_]*\.[0-9][0-9_]*[fFL]?/,
+          /[0-9][0-9_]*\.[0-9][0-9_]*[eE][-\+]?[0-9_]*[0-9][0-9_]*[fFL]?/,
+          /[0-9][0-9_]*[eE][-\+]?[0-9_]*[0-9][0-9_]*[fFL]?/,
+        ),
+      ),
+
     //
     // Token String
     //
@@ -122,8 +145,7 @@ module.exports = grammar({
         $.identifier,
         $.string_literal,
         $.char_literal,
-        $.int_literal,
-        $.float_literal,
+        $.num_literal,
         $.keyword,
         "/",
         "/=",
@@ -981,8 +1003,7 @@ module.exports = grammar({
         $.true,
         $.false,
         $.special_keyword,
-        $.int_literal,
-        $.float_literal,
+        $.num_literal,
         $.char_literal,
         $.string_literal,
       ),
@@ -2183,8 +2204,7 @@ module.exports = grammar({
         $._builtin_type,
         $.char_literal,
         $.string_literal,
-        $.int_literal,
-        $.float_literal,
+        $.num_literal,
         $.true,
         $.false,
         $.null,
@@ -2345,24 +2365,45 @@ module.exports = grammar({
         seq(
           $.version,
           "(",
-          choice($.int_literal, $.identifier, $.unittest, $.assert),
+          choice(
+            alias($._int_literal, $.num_literal),
+            $.identifier,
+            $.unittest,
+            $.assert,
+          ),
           ")",
         ),
       ),
 
     version_specification: ($) =>
-      seq($.version, "=", choice($.int_literal, $.identifier), ";"),
+      seq(
+        $.version,
+        "=",
+        choice(alias($._int_literal, $.num_literal), $.identifier),
+        ";",
+      ),
 
     debug_condition: ($) =>
       prec.right(
         seq(
           $.debug,
-          optional(seq("(", choice($.int_literal, $.identifier), ")")),
+          optional(
+            seq(
+              "(",
+              choice(alias($._int_literal, $.num_literal), $.identifier),
+              ")",
+            ),
+          ),
         ),
       ),
 
     debug_specification: ($) =>
-      seq($.debug, "=", choice($.int_literal, $.identifier), ";"),
+      seq(
+        $.debug,
+        "=",
+        choice(alias($._int_literal, $.num_literal), $.identifier),
+        ";",
+      ),
 
     static_if_condition: ($) => seq($.static, $.if, "(", $.expression, ")"),
 

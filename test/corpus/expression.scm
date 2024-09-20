@@ -12,5 +12,5 @@ int x  = 5 / 3;
       (identifier)
       (binary_expression
         (mul_expression
-          (int_literal)
-          (int_literal))))))
+          (num_literal)
+          (num_literal))))))

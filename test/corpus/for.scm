@@ -65,7 +65,7 @@ void f() {
             (expression_list
               (assignment_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (scope_statement
             (block_statement)))))))
 
@@ -93,7 +93,7 @@ void f() {
               (int))
             (declarator
               (identifier)
-              (int_literal)))
+              (num_literal)))
           (scope_statement
             (block_statement)))))))
 
@@ -120,12 +120,12 @@ void f() {
             (expression_list
               (assignment_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (expression
             (binary_expression
               (rel_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (scope_statement
             (block_statement)))))))
 
@@ -152,7 +152,7 @@ void f() {
             (expression_list
               (assignment_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (expression_list
             (postfix_expression
               (identifier)))
@@ -234,7 +234,7 @@ void f() {
             (binary_expression
               (equal_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (scope_statement
             (block_statement)))))))
 
@@ -261,7 +261,7 @@ void f() {
             (binary_expression
               (equal_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (scope_statement
             (block_statement)))))))
 
@@ -289,12 +289,12 @@ void f() {
               (int))
             (declarator
               (identifier)
-              (int_literal)))
+              (num_literal)))
           (expression
             (binary_expression
               (equal_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (expression_list
             (postfix_expression
               (identifier)))
@@ -325,12 +325,12 @@ void f() {
               (int))
             (declarator
               (identifier)
-              (int_literal)))
+              (num_literal)))
           (expression
             (binary_expression
               (equal_expression
                 (identifier)
-                (int_literal))))
+                (num_literal))))
           (expression_list
             (postfix_expression
               (identifier))

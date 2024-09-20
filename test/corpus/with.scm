@@ -38,4 +38,4 @@ unittest { with (x) int y = 0; }
               (int))
             (declarator
               (identifier)
-              (int_literal))))))))
+              (num_literal))))))))

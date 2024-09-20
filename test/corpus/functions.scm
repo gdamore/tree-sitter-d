@@ -16,7 +16,7 @@ int f() { return 0; }
         (return_statement
           (return)
           (expression
-            (int_literal)))))))
+            (num_literal)))))))
 
 ================================================================================
 Single Parameter Function
@@ -178,7 +178,7 @@ unittest {
                       (return_statement
                         (return)
                         (expression
-                          (int_literal))))))))))))))
+                          (num_literal))))))))))))))
 
 ================================================================================
 Function literal anonymous parameter
@@ -209,7 +209,7 @@ unittest {
                       (return_statement
                         (return)
                         (expression
-                          (int_literal))))))))))))))
+                          (num_literal))))))))))))))
 
 ================================================================================
 Function literal named parameter
@@ -241,7 +241,7 @@ unittest {
                       (return_statement
                         (return)
                         (expression
-                          (int_literal))))))))))))))
+                          (num_literal))))))))))))))
 
 ================================================================================
 Function literal auto ref
@@ -343,7 +343,7 @@ Auto functions
         (return_statement
           (return)
           (expression
-            (int_literal))))))
+            (num_literal))))))
   (function_declaration
     (storage_class
       (auto))
@@ -358,7 +358,7 @@ Auto functions
         (return_statement
           (return)
           (expression
-            (int_literal)))))))
+            (num_literal)))))))
 
 ================================================================================
 Qualified lambda functions
@@ -381,7 +381,7 @@ Qualified lambda functions
         (return_statement
           (return)
           (expression
-            (int_literal))))))
+            (num_literal))))))
   (auto_declaration
     (storage_class
       (auto))
@@ -395,7 +395,7 @@ Qualified lambda functions
         (return_statement
           (return)
           (expression
-            (int_literal)))))))
+            (num_literal)))))))
 
 ================================================================================
 Qualifeid delegates
@@ -419,7 +419,7 @@ Qualifeid delegates
         (return_statement
           (return)
           (expression
-            (int_literal))))))
+            (num_literal))))))
   (auto_declaration
     (storage_class
       (auto))
@@ -434,7 +434,7 @@ Qualifeid delegates
         (return_statement
           (return)
           (expression
-            (int_literal)))))))
+            (num_literal)))))))
 
 ================================================================================
 Function Contract Statement
@@ -479,7 +479,7 @@ int g(float = 1.3 ...) {}
         (type
           (int))
         (identifier)
-        (int_literal)
+        (num_literal)
         (ellipses)))
     (function_body
       (block_statement)))
@@ -491,7 +491,7 @@ int g(float = 1.3 ...) {}
       (parameter
         (type
           (float))
-        (float_literal)
+        (num_literal)
         (ellipses)))
     (function_body
       (block_statement))))
@@ -525,7 +525,7 @@ void test()
               (return_statement
                 (return)
                 (expression
-                  (int_literal))))))))))
+                  (num_literal))))))))))
 
 ================================================================================
 Shortened function body
@@ -547,7 +547,7 @@ int f(int x) => x * 2;
       (binary_expression
         (mul_expression
           (identifier)
-          (int_literal))))))
+          (num_literal))))))
 
 ================================================================================
 Shorted function body with contract
@@ -573,10 +573,10 @@ float recip(float x)in(x != 0) => 1/x;
             (binary_expression
               (equal_expression
                 (identifier)
-                (int_literal))))))
+                (num_literal))))))
       (binary_expression
         (mul_expression
-          (int_literal)
+          (num_literal)
           (identifier))))))
 
 ================================================================================
@@ -641,7 +641,7 @@ unittest {
               (named_argument
                 (identifier)
                 (expression
-                  (int_literal))))))))))
+                  (num_literal))))))))))
 
 ================================================================================
 Function call multiple named and unnamed parameters
@@ -673,7 +673,7 @@ unittest {
               (named_argument
                 (identifier)
                 (expression
-                  (int_literal)))
+                  (num_literal)))
               (named_argument
                 (expression
                   (char_literal))))))))))

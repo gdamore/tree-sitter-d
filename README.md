@@ -11,63 +11,56 @@ D Grammar for Tree Sitter
 
 This is a [D](https://dlang.org/) grammar for [Tree Sitter](https://tree-sitter.github.io/tree-sitter/).
 
-As of this writing, I believe it fully supports D 2.108.
+There are a couple of deviations from what the compiler grammar supports.
 
-I believe this is the most accurate and complete machine readable grammar for D,
-as of this writing. In fact it might be the only one that can claim full, or
-nearly full, conformance to D 2.108.
+* No support for a lone trailing decimal point in floating point literals (e.g. `5.`.)
+  Supporting this became problematic when combined with support for interpolated
+  strings in the parser.
 
-We have a large body of code at Weka, and that corpus was used to test and verify
-this parser. As of this writing, it passes cleanly, and I am not aware of any
-outstanding exceptions where this grammar fails.
+* There is a bug declaring certain double quoted strings.  For example, `"__EOF__"`
+  is problematic right now.  If this is problematic, insert an escape character
+  in front of the string or encode the leading character in hexadecimal. (This bug
+  should be fixed soon however.)
 
-Additionally this grammar has been tested with the DMD source code, as well as
-the test cases for DMD.
+* No support for imaginary floating point numbers.  This is deprecated in the current
+  specification for D, anyway.
 
-I hope that this work will be able to be useful not just in the context of Tree Sitter,
-but as a starting port for a more formal and accurate grammar which reflects the
-actual behavior of the DMD reference compiler.
+* A few constructs that appear to be legal in the D grammar, but are semantically
+  illegal, are not processed by this grammar.  For example, `@safe ;` is technically
+  valid *syntax* if you follow the D specification, but will be rejected by the
+  compiler. Another example, use of a comma statement in a `return` statement is
+  is not permitted.
 
-## Grammar Deviations
+* Due to ambiguities in the D specification, its possible that the grammar interpretation
+  here may be other than what one might expect.  For example, in `@property auto myfunc() {};`
+  is `@property` a part of the `DeclDef` or does it become part of the `FunctionDeclaration`.
+  In general, we have tried to provide for the most sensible and useful interpretation, but
+  opinions may vary.
 
-This has been used to parse the test corpus from DMD itself.
-A few failures in that case come in a couple of forms:
-
-- Grammar or errors that are in code not caught by DMD, because it is in
+* Grammar or errors that are in code not caught by DMD, because it is in
   code that is not compiled (such as templates that are not instantiated).
   This grammar doesn't know about instantiation or constructs that are
   tucked behind conditional compilation, and verifies the entire body
   of the source document. I consider this a feature, not a bug.
 
-- Deprecated use of the former `body` keyword (it is no longer a keyword.)
+* Deprecated use of the former `body` keyword (it is no longer a keyword.)
   If your source file has this problem, change `body` to `do`.
   You could also just delete the word, as it is entirely optional in the
   syntax where it appears.
 
-- A pathological case with `#line` directives with a multi-line comment
+* A pathological case with `#line` directives with a multi-line comment
   on in the middle of the directive. Nothing real emits such a busted syntax,
   and fixing it would require significant changes to the lexer, for absolutely
   zero real world benefit.  (This was fixed in newer versions of D.)
 
-- Inline assembler is essentially treated as a token stream with no
+* Inline assembler is essentially treated as a token stream with no
   real validation. As this is compiler and CPU specific, it doesn't make
   a lot of sense to try to add that here.  (Use of DMD's inline assembler
   is not widely used, even within the D community, as it's limited to x86.)
 
-- Use of `enum` as return type is now removed, following D 2.105.
+* Use of `enum` as return type is now removed, following D 2.105.
   Please use `auto` if that creates an error in old code.  (Not actually
   a deviation, for users of newer editions of D.)
-
-In some areas this grammar is stricter than what is formally specified on
-the D website. It has some rules that make the grammar reject constructs that
-would appear legal in the D grammar, but actually are rejected by the compiler
-during semantic analysis.
-
-I do not believe that this increase in tightness will
-cause any correct programs to be rejected, and it reduces some of the ambiguities
-in the language. This mainly consists of rejection of the use of expression lists
-(i.e. "expression1, expression2, ...") in contexts where only a single value is legal.
-(For example, you cannot use a comma expression in a `return` statement.)
 
 ## Acknowledgements
 

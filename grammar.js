@@ -15,7 +15,7 @@ module.exports = grammar({
     $.directive,
     $.int_literal,
     $.float_literal,
-    $._string,
+    $.regular_string_literal,
     $.not_in,
     $.not_is,
     $._after_eof,
@@ -158,7 +158,7 @@ module.exports = grammar({
     //
     // Token String
     //
-    token_string: ($) => seq("q{", optional($._token_string_tokens), "}"),
+    token_string_literal: ($) => seq("q{", optional($._token_string_tokens), "}"),
 
     // we aren't tokenizing this yet
     _token_string_tokens: ($) => repeat1($._token_string_token),
@@ -172,7 +172,7 @@ module.exports = grammar({
     _token_no_braces: ($) =>
       choice(
         $.identifier,
-        $.string_literal,
+        $._any_string_literal,
         $.char_literal,
         $.int_literal,
         $.float_literal,
@@ -1038,7 +1038,7 @@ module.exports = grammar({
         $.int_literal,
         $.float_literal,
         $.char_literal,
-        $.string_literal,
+        $._any_string_literal,
       ),
 
     // also covers slicing (we renamed from slice,
@@ -1275,7 +1275,7 @@ module.exports = grammar({
         $.package,
       ),
 
-    raw_string: ($) =>
+    raw_string_literal: ($) =>
       choice(
         seq("`", token.immediate(prec(1, /[^`]*/)), token.immediate(/`[cdw]?/)),
         seq(
@@ -1285,7 +1285,7 @@ module.exports = grammar({
         ),
       ),
 
-    hex_string: ($) =>
+    hex_string_literal: ($) =>
       seq(
         'x"',
         token.immediate(prec(1, /[0-9A-Fa-f\s]*/)),
@@ -1294,7 +1294,7 @@ module.exports = grammar({
 
     // _unescaped_string_content: (_) => token.immediate(/[^"\\]+/),
 
-    quoted_string: ($) =>
+    quoted_string_literal: ($) =>
       seq(
         '"',
         repeat(
@@ -1310,7 +1310,7 @@ module.exports = grammar({
     // interpolated strings
     interpolation_expression: ($) => seq("$(", $.expression, ")"),
 
-    interpolated_raw_string: ($) =>
+    interpolated_raw_string_literal: ($) =>
       seq(
         "i`",
         repeat(choice(/[^`$]+/, /\$[^(`]/, $.interpolation_expression)),
@@ -1319,7 +1319,7 @@ module.exports = grammar({
 
     interpolated_escape: ($) => "\\$",
 
-    interpolated_quoted_string: ($) =>
+    interpolated_quoted_string_literal: ($) =>
       seq(
         'i"',
         repeat(
@@ -1335,7 +1335,7 @@ module.exports = grammar({
         choice('"', '$"'), // tailing "$" special
       ),
 
-    interpolated_token_string: ($) =>
+    interpolated_token_string_literal: ($) =>
       seq("iq{", optional($._i_token_string_tokens), "}"),
 
     // we aren't tokenizing this yet
@@ -1349,16 +1349,16 @@ module.exports = grammar({
       ),
 
     // string literal stuff
-    string_literal: ($) =>
+    _any_string_literal: ($) =>
       choice(
-        $._string,
-        $.raw_string,
-        $.hex_string,
-        $.quoted_string,
-        $.token_string,
-        $.interpolated_raw_string,
-        $.interpolated_quoted_string,
-        $.interpolated_token_string,
+        $.regular_string_literal,
+        $.raw_string_literal,
+        $.hex_string_literal,
+        $.quoted_string_literal,
+        $.token_string_literal,
+        $.interpolated_raw_string_literal,
+        $.interpolated_quoted_string_literal,
+        $.interpolated_token_string_literal,
       ),
 
     char_literal: ($) =>
@@ -2247,7 +2247,7 @@ module.exports = grammar({
         $.void,
         $._builtin_type,
         $.char_literal,
-        $.string_literal,
+        $._any_string_literal,
         $.int_literal,
         $.float_literal,
         $.true,

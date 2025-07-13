@@ -26,3 +26,4 @@
 (variable_declaration (type (identifier) @name) @reference.class (declarator))
 
 ((alias_declaration (alias_initializer . (identifier) @name))) @definition.class
+(mixin_template_declaration (mixin) (template_declaration (template) (identifier) @name)) @definition.type

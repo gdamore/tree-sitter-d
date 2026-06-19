@@ -52,6 +52,31 @@ Nesting comment
   (comment))
 
 ==================
+Nesting comment with trailing pluses (issue #52)
+==================
+
+/+ one ++/
+/++/
+/+ two +++/
+/+
+struct ByLineBuffer(Char)
+{
+    Char[] buffer;
+}
+++/
+/+ outer /+ inner ++/ still outer ++/
+# line
+---
+
+(source_file
+  (comment)
+  (comment)
+  (comment)
+  (comment)
+  (comment)
+  (directive))
+
+==================
 Embedded comments in string
 ==================
 enum x = "this // is /* not */ a // comment";

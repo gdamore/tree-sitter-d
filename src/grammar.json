@@ -204,7 +204,7 @@
                     },
                     {
                       "type": "PATTERN",
-                      "value": "\\+[^\\/]"
+                      "value": "\\++[^+\\/]"
                     },
                     {
                       "type": "SEQ",
@@ -224,7 +224,7 @@
                               },
                               {
                                 "type": "PATTERN",
-                                "value": "\\+[^\\/]"
+                                "value": "\\++[^+\\/]"
                               },
                               {
                                 "type": "SEQ",
@@ -244,7 +244,7 @@
                                         },
                                         {
                                           "type": "PATTERN",
-                                          "value": "\\+[^\\/]"
+                                          "value": "\\++[^+\\/]"
                                         },
                                         {
                                           "type": "SEQ",
@@ -264,7 +264,7 @@
                                                   },
                                                   {
                                                     "type": "PATTERN",
-                                                    "value": "\\+[^\\/]"
+                                                    "value": "\\++[^+\\/]"
                                                   },
                                                   {
                                                     "type": "SEQ",
@@ -284,14 +284,14 @@
                                                             },
                                                             {
                                                               "type": "PATTERN",
-                                                              "value": "\\+[^\\/]"
+                                                              "value": "\\++[^+\\/]"
                                                             }
                                                           ]
                                                         }
                                                       },
                                                       {
-                                                        "type": "STRING",
-                                                        "value": "+/"
+                                                        "type": "PATTERN",
+                                                        "value": "\\++\\/"
                                                       }
                                                     ]
                                                   }
@@ -299,8 +299,8 @@
                                               }
                                             },
                                             {
-                                              "type": "STRING",
-                                              "value": "+/"
+                                              "type": "PATTERN",
+                                              "value": "\\++\\/"
                                             }
                                           ]
                                         }
@@ -308,8 +308,8 @@
                                     }
                                   },
                                   {
-                                    "type": "STRING",
-                                    "value": "+/"
+                                    "type": "PATTERN",
+                                    "value": "\\++\\/"
                                   }
                                 ]
                               }
@@ -317,8 +317,8 @@
                           }
                         },
                         {
-                          "type": "STRING",
-                          "value": "+/"
+                          "type": "PATTERN",
+                          "value": "\\++\\/"
                         }
                       ]
                     }
@@ -326,8 +326,8 @@
                 }
               },
               {
-                "type": "STRING",
-                "value": "+/"
+                "type": "PATTERN",
+                "value": "\\++\\/"
               }
             ]
           }

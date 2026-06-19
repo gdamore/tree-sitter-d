@@ -94,13 +94,18 @@ match_heredoc_string(TSLexer *lexer)
 {
 	// this is an arbitrary, but reasonable limit
 	// no identifiers longer than this
-	int    identifier[256 + 2]; // +2 for closing " and null
+	enum { HEREDOC_DELIM_MAX = 256 };
+	// +2 for closing " and null.  NB: the loop below is bounded by
+	// the element count (HEREDOC_DELIM_MAX), *not* sizeof() -- using
+	// sizeof here would be the byte size and overflow this stack
+	// buffer for delimiters longer than the array (CWE-787).
+	int    identifier[HEREDOC_DELIM_MAX + 2];
 	size_t i = 0;
 	size_t j;
 	int    c;
 
 	// get the delimiter
-	while (i < (sizeof(identifier) - 2)) {
+	while (i < HEREDOC_DELIM_MAX) {
 		c = lexer->lookahead;
 		// technically should not start with a digit, but we allow
 		if (is_eol(c) || ((!iswalnum(c)) && (c != '_'))) {
@@ -110,6 +115,14 @@ match_heredoc_string(TSLexer *lexer)
 		lexer->advance(lexer, false);
 	}
 	if (i == 0) {
+		return (false);
+	}
+	// if we filled the buffer but the delimiter still continues,
+	// it is longer than we are willing to handle.  Bail out rather
+	// than silently truncating (and mis-matching) the delimiter.
+	c = lexer->lookahead;
+	if ((i == HEREDOC_DELIM_MAX) && (!is_eol(c)) &&
+	    (iswalnum(c) || (c == '_'))) {
 		return (false);
 	}
 	// inject the closing quote at the end of the identifier

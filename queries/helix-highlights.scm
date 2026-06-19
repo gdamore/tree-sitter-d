@@ -169,6 +169,14 @@
     "}"
 ] @punctuation.bracket
 
+; The delimiters of an interpolation expression inside an interpolated string.
+; Listed after the bracket rule above so the closing ")" is captured here rather
+; than as a plain bracket; this keeps the opening "$(" and closing ")" the same
+; color instead of the opener inheriting the surrounding string color.
+(interpolation_expression
+    "$(" @punctuation.special
+    ")" @punctuation.special)
+
 [
     ";"
     "."

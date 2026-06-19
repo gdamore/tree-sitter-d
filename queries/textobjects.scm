@@ -1,9 +1,9 @@
-(function_declaration (function_body) @function.inside) @function.around
-(comment) @comment.inside
-(comment)+ @comment.around
-(class_declaration (aggregate_body) @class.inside) @class.around
-(interface_declaration (aggregate_body) @class.inside) @class.around
-(struct_declaration (aggregate_body) @class.inside) @class.around
-(unittest_declaration (block_statement) @test.inside) @test.around
-(parameter) @parameter.inside
-(template_parameter) @parameter.inside
+(function_declaration (function_body) @function.inner) @function.outer
+(comment) @comment.inner
+(comment)+ @comment.outer
+(class_declaration (aggregate_body) @class.inner) @class.outer
+(interface_declaration (aggregate_body) @class.inner) @class.outer
+(struct_declaration (aggregate_body) @class.inner) @class.outer
+(unittest_declaration (block_statement) @test.inner) @test.outer
+(parameter) @parameter.inner
+(template_parameter) @parameter.inner
